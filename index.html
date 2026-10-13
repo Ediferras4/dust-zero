@@ -602,6 +602,7 @@
             box-shadow: 0 0 6px var(--accent-cyan);
         }
 
+        /* CONTAINER PRINCIPAL E ADAPTAÇÃO RESPONSIVA PARA PC (DESKTOP DASHBOARD) */
         .container {
             width: 100%;
             max-width: 480px;
@@ -610,8 +611,23 @@
         }
 
         @media (min-width: 768px) {
-            .container { max-width: 580px; }
+            .container { max-width: 620px; }
             header { padding: 0 40px; }
+        }
+
+        /* LAYOUT EM GRELHA PROFISSIONAL PARA PC (DESKTOP) */
+        @media (min-width: 1024px) {
+            .container {
+                max-width: 1040px;
+                display: grid;
+                grid-template-columns: 1.2fr 1fr;
+                gap: 20px;
+                align-items: start;
+            }
+            .intro-text { grid-column: span 2; margin-bottom: 5px; }
+            .col-left { display: flex; flex-direction: column; gap: 16px; }
+            .col-right { display: flex; flex-direction: column; gap: 16px; position: sticky; top: 110px; }
+            header { padding: 0 60px; }
         }
 
         .intro-text {
@@ -1174,7 +1190,7 @@
         .success-check { font-size: 1.1rem; font-weight: bold; color: white; }
 
         footer { width: 100%; border-top: 1px solid var(--border-color); padding: 20px 24px; display: flex; justify-content: center; align-items: center; margin-top: auto; }
-        .footer-content { width: 100%; max-width: 580px; font-size: 0.75rem; color: var(--text-secondary); text-align: left; font-weight: 400; }
+        .footer-content { width: 100%; max-width: 1040px; font-size: 0.75rem; color: var(--text-secondary); text-align: left; font-weight: 400; }
     </style>
 </head>
 <body data-theme="dark">
@@ -1345,145 +1361,152 @@
         </div>
     </div>
 
+    <!-- CONTAINER PRINCIPAL COM ESTRUTURA RESPONSIVA PARA PC E MOBILE -->
     <div class="container">
         <div class="intro-text">
             <h2 id="introTitle">Smart Asset <span class="highlight-word">Consolidation</span></h2>
             <p id="introDesc">Connect your wallet to the Arc network to detect and convert small residual balances into stablecoins seamlessly.</p>
         </div>
 
-        <!-- CAIXA DE PATRIMÓNIO TOTAL -->
-        <div class="total-wealth-card">
-            <div class="wealth-header-row">
-                <span class="wealth-title" id="wealthTitle">Total Wealth on Arc</span>
-                <div class="network-indicator">
-                    <span class="network-name-label">Arc network (5042)</span>
-                    <div class="status-dot" id="statusDot"></div>
-                </div>
-            </div>
-            <span class="wealth-amount" id="wealthAmount">$0.00</span>
-            <span class="wealth-subtitle" id="wealthSub">Estimated value in USDC</span>
-        </div>
-
-        <!-- 3 CAIXAS DE ESTATÍSTICAS -->
-        <div class="analytics-grid">
-            <div class="analytic-card">
-                <div class="analytic-top">
-                    <div class="analytic-icon icon-blue">❖</div>
-                    <span class="analytic-number" id="statFound">0</span>
-                </div>
-                <div class="analytic-label" id="labelFound">Tokens Found</div>
-            </div>
-            <div class="analytic-card">
-                <div class="analytic-top">
-                    <div class="analytic-icon icon-green">✓</div>
-                    <span class="analytic-number" id="statEligible">0</span>
-                </div>
-                <div class="analytic-label" id="labelEligible">Eligible</div>
-            </div>
-            <div class="analytic-card">
-                <div class="analytic-top">
-                    <div class="analytic-icon icon-yellow">!</div>
-                    <span class="analytic-number" id="statReview">0</span>
-                </div>
-                <div class="analytic-label" id="labelReview">Not Eligible</div>
-            </div>
-        </div>
-
-        <!-- CAIXA DE AVISO -->
-        <div class="slippage-notice-box">
-            <div class="notice-icon-circle">i</div>
-            <div class="slippage-notice-text" id="slippageText">
-                Only small balances <strong>up to $5.00</strong> are eligible for optimized batch conversion (Arc Mainnet)
-            </div>
-        </div>
-
-        <!-- PAINEL DE TOKENS -->
-        <div class="card">
-            <div class="list-header">
-                <span class="list-title" id="tokensHeader">Tokens found</span>
-                <div class="select-all-container" id="selectAllContainer" style="display:none;" onclick="toggleSelectAll()">
-                    <span class="select-all-label-text" id="selectAllText">Select eligible</span>
-                    <label class="custom-switch-wrapper">
-                        <input type="checkbox" id="selectAllCheckbox">
-                        <span class="custom-switch-slider"></span>
-                    </label>
-                </div>
-            </div>
-            
-            <div class="token-list" id="tokenList">
-                <div class="scanner-state">
-                    <div class="globe-container">
-                        <div class="globe-grid"></div>
-                        <div class="globe-text-marquee">
-                            <span>ARC MAINNET</span>
-                            <span>DUST ZERO</span>
-                            <span>ARC MAINNET</span>
-                        </div>
+        <!-- COLUNA ESQUERDA (NO PC) / TOPO (NO MOBILE) -->
+        <div class="col-left">
+            <!-- CAIXA DE PATRIMÓNIO TOTAL -->
+            <div class="total-wealth-card">
+                <div class="wealth-header-row">
+                    <span class="wealth-title" id="wealthTitle">Total Wealth on Arc</span>
+                    <div class="network-indicator">
+                        <span class="network-name-label">Arc Network</span>
+                        <div class="status-dot" id="statusDot"></div>
                     </div>
-                    <p id="scanPrompt" style="font-size: 0.85rem; font-weight: 500;">Connect wallet to scan network...</p>
                 </div>
+                <span class="wealth-amount" id="wealthAmount">$0.00</span>
+                <span class="wealth-subtitle" id="wealthSub">Estimated value in USDC</span>
             </div>
-        </div>
 
-        <!-- CARTÃO DE RESUMO PROFISSIONAL -->
-        <div class="card-summary-pro" id="reviewCard">
-            <div class="summary-pro-header">
-                <div class="summary-pro-title-area">
-                    <div class="summary-pro-icon">
-                        <svg viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+            <!-- 3 CAIXAS DE ESTATÍSTICAS -->
+            <div class="analytics-grid">
+                <div class="analytic-card">
+                    <div class="analytic-top">
+                        <div class="analytic-icon icon-blue">❖</div>
+                        <span class="analytic-number" id="statFound">0</span>
                     </div>
-                    <span id="summaryHeaderTitle">Summary</span>
+                    <div class="analytic-label" id="labelFound">Tokens Found</div>
                 </div>
-                <div class="summary-currency-tag" id="currentCurrencyTag">USDC</div>
+                <div class="analytic-card">
+                    <div class="analytic-top">
+                        <div class="analytic-icon icon-green">✓</div>
+                        <span class="analytic-number" id="statEligible">0</span>
+                    </div>
+                    <div class="analytic-label" id="labelEligible">Eligible</div>
+                </div>
+                <div class="analytic-card">
+                    <div class="analytic-top">
+                        <div class="analytic-icon icon-yellow">!</div>
+                        <span class="analytic-number" id="statReview">0</span>
+                    </div>
+                    <div class="analytic-label" id="labelReview">Not Eligible</div>
+                </div>
             </div>
 
-            <div class="summary-pro-grid">
-                <div class="summary-col">
-                    <span class="summary-label-sm" id="lblSelectedVal">Selected value</span>
-                    <span class="summary-val-main" id="valSelectedAmount">$0.00</span>
-                </div>
-                <div class="summary-col right">
-                    <span class="summary-label-sm" id="lblYouReceive">You receive</span>
-                    <span class="summary-val-main green" id="valReceiveAmount">$0.00</span>
+            <!-- CAIXA DE AVISO -->
+            <div class="slippage-notice-box">
+                <div class="notice-icon-circle">i</div>
+                <div class="slippage-notice-text" id="slippageText">
+                    Only small balances <strong>up to $5.00</strong> are eligible for optimized batch conversion (Arc Mainnet)
                 </div>
             </div>
 
-            <div class="summary-fees-section">
-                <div class="fees-toggle-row" id="feesToggleRow" onclick="toggleFeeDropdown()">
-                    <span class="fees-title-left" id="lblEstimatedCosts">Estimated costs</span>
-                    <div class="fees-right-side">
-                        <span id="valTotalFees">~$0.02</span>
-                        <span class="fees-arrow" id="feesArrow">▼</span>
+            <!-- PAINEL DE TOKENS -->
+            <div class="card" style="margin-bottom: 0;">
+                <div class="list-header">
+                    <span class="list-title" id="tokensHeader">Tokens found</span>
+                    <div class="select-all-container" id="selectAllContainer" style="display:none;" onclick="toggleSelectAll()">
+                        <span class="select-all-label-text" id="selectAllText">Select eligible</span>
+                        <label class="custom-switch-wrapper">
+                            <input type="checkbox" id="selectAllCheckbox">
+                            <span class="custom-switch-slider"></span>
+                        </label>
                     </div>
                 </div>
                 
-                <div class="fees-dropdown-content" id="feesDropdown">
-                    <div class="fee-sub-row">
-                        <span id="lblDustFee">Dust Zero fee</span>
-                        <span id="valDustFee">$0.00</span>
-                    </div>
-                    <div class="fee-sub-row">
-                        <span id="lblSwapFee">Conversion cost</span>
-                        <span id="valSwapFee">~$0.01</span>
-                    </div>
-                    <div class="fee-sub-row">
-                        <span id="lblGasFee">Arc network gas</span>
-                        <span id="valGasFee">~$0.01</span>
-                    </div>
-                    <div class="fees-disclaimer" id="lblFeeDisclaimer">
-                        Arc mainnet gas paid in USDC. Actual breakdown depends on market rate.
+                <div class="token-list" id="tokenList">
+                    <div class="scanner-state">
+                        <div class="globe-container">
+                            <div class="globe-grid"></div>
+                            <div class="globe-text-marquee">
+                                <span>ARC MAINNET</span>
+                                <span>DUST ZERO</span>
+                                <span>ARC MAINNET</span>
+                            </div>
+                        </div>
+                        <p id="scanPrompt" style="font-size: 0.85rem; font-weight: 500;">Connect wallet to scan Arc network...</p>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Botão de Ação Principal -->
-        <button id="sweepBtn" class="action-btn" onclick="handleMainAction()" disabled>Review Consolidation</button>
+        <!-- COLUNA DIREITA (NO PC) /BAIXO (NO MOBILE) -->
+        <div class="col-right">
+            <!-- CARTÃO DE RESUMO PROFISSIONAL -->
+            <div class="card-summary-pro" id="reviewCard">
+                <div class="summary-pro-header">
+                    <div class="summary-pro-title-area">
+                        <div class="summary-pro-icon">
+                            <svg viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+                        </div>
+                        <span id="summaryHeaderTitle">Summary</span>
+                    </div>
+                    <div class="summary-currency-tag" id="currentCurrencyTag">USDC</div>
+                </div>
+
+                <div class="summary-pro-grid">
+                    <div class="summary-col">
+                        <span class="summary-label-sm" id="lblSelectedVal">Selected value</span>
+                        <span class="summary-val-main" id="valSelectedAmount">$0.00</span>
+                    </div>
+                    <div class="summary-col right">
+                        <span class="summary-label-sm" id="lblYouReceive">You receive</span>
+                        <span class="summary-val-main green" id="valReceiveAmount">$0.00</span>
+                    </div>
+                </div>
+
+                <div class="summary-fees-section">
+                    <div class="fees-toggle-row" id="feesToggleRow" onclick="toggleFeeDropdown()">
+                        <span class="fees-title-left" id="lblEstimatedCosts">Estimated costs</span>
+                        <div class="fees-right-side">
+                            <span id="valTotalFees">~$0.02</span>
+                            <span class="fees-arrow" id="feesArrow">▼</span>
+                        </div>
+                    </div>
+                    
+                    <div class="fees-dropdown-content" id="feesDropdown">
+                        <div class="fee-sub-row">
+                            <span id="lblDustFee">Dust Zero fee</span>
+                            <span id="valDustFee">$0.00</span>
+                        </div>
+                        <div class="fee-sub-row">
+                            <span id="lblSwapFee">Conversion cost</span>
+                            <span id="valSwapFee">~$0.01</span>
+                        </div>
+                        <div class="fee-sub-row">
+                            <span id="lblGasFee">Arc network gas</span>
+                            <span id="valGasFee">~$0.01</span>
+                        </div>
+                        <div class="fees-disclaimer" id="lblFeeDisclaimer">
+                            Arc mainnet gas paid in USDC. Actual breakdown depends on market rate.
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Botão de Ação Principal -->
+            <button id="sweepBtn" class="action-btn" onclick="handleMainAction()" disabled>Review Consolidation</button>
+        </div>
     </div>
 
     <footer>
         <div class="footer-content">
-            © 2026 Dust Zero • Arc Mainnet (Chain ID: 5042)
+            © 2026 Dust Zero • Arc Mainnet
         </div>
     </footer>
 
@@ -1773,26 +1796,20 @@
             }
 
             try {
-                // Inicializa o provider ethers v6 com a extensão injetada
                 provider = new ethers.BrowserProvider(window.ethereum);
-                
-                // Solicita acesso às contas do utilizador
                 const accounts = await provider.send("eth_requestAccounts", []);
                 userAddress = accounts[0];
                 
-                // Verifica a rede atual
                 const network = await provider.getNetwork();
                 const chainId = Number(network.chainId);
 
                 if (chainId !== ARC_CHAIN_ID) {
                     try {
-                        // Tenta mudar automaticamente para a Arc Mainnet (5042)
                         await window.ethereum.request({
                             method: 'wallet_switchEthereumChain',
                             params: [{ chainId: ARC_CHAIN_ID_HEX }],
                         });
                     } catch (switchError) {
-                        // Se a rede não estiver adicionada na carteira, adiciona-a
                         if (switchError.code === 4902) {
                             try {
                                 await window.ethereum.request({
@@ -2042,7 +2059,6 @@
                 btn.disabled = true;
                 btn.innerHTML = `<span class="spinner-icon"></span> ${t.btnProcessing}`;
 
-                // Simulação da transação real pronta para receber o smart contract batch na Arc
                 setTimeout(() => {
                     btn.innerHTML = `<span class="success-check">✓</span> ${t.btnSuccess}`;
                     
@@ -2061,7 +2077,6 @@
             }
         }
 
-        // Monitoriza mudanças de conta ou rede na carteira em tempo real
         if (window.ethereum) {
             window.ethereum.on('accountsChanged', (accounts) => {
                 if (accounts.length === 0) {
