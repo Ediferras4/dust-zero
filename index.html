@@ -6,6 +6,9 @@
     <title id="pageTitle">Dust Zero - Arc Network</title>
     <!-- Ethers.js v6 CDN para interações Web3 reais -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.13.2/ethers.umd.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
             --bg-color: #05070a;
@@ -36,14 +39,6 @@
             --connect-connected-bg: #0b111a;
             --connect-connected-border: #1a263d;
             --connect-connected-text: #93c5fd;
-            
-            --globe-bg-grad: radial-gradient(circle at 30% 30%, #1e3a8a, #05070a);
-            --globe-shadow: inset 0 0 30px rgba(73, 189, 235, 0.35), 0 0 35px rgba(59, 130, 246, 0.2);
-            --globe-border: #2563eb;
-            --globe-grid-color-1: rgba(73, 189, 235, 0.12);
-            --globe-grid-color-2: rgba(16, 185, 129, 0.08);
-            --globe-marquee-color: #49BDEB;
-            --globe-marquee-shadow: 0 0 12px rgba(73, 189, 235, 0.8);
         }
 
         /* MODO CLARO - CINZA AZULADO PROFISSIONAL */
@@ -76,14 +71,6 @@
             --connect-connected-bg: #E6F4EA;
             --connect-connected-border: #A6E1BE;
             --connect-connected-text: #07875B;
-
-            --globe-bg-grad: radial-gradient(circle at 30% 30%, #e0f2fe, #bae6fd);
-            --globe-shadow: inset 0 0 25px rgba(7, 137, 184, 0.2), 0 10px 25px rgba(0, 0, 0, 0.05);
-            --globe-border: #0789B8;
-            --globe-grid-color-1: rgba(7, 137, 184, 0.1);
-            --globe-grid-color-2: rgba(7, 135, 91, 0.06);
-            --globe-marquee-color: #0789B8;
-            --globe-marquee-shadow: 0 0 8px rgba(7, 137, 184, 0.3);
         }
 
         * {
@@ -178,6 +165,111 @@
             height: 2px;
             background-color: var(--text-main);
             border-radius: 2px;
+        }
+
+        /* ESTILOS DO BANNER SVG ANIMADO */
+        .dz-banner-card {
+            position: relative;
+            width: 100%;
+            max-width: 1080px;
+            margin: 0 auto 20px auto;
+            padding: 26px 34px 20px;
+            border: 1px solid rgba(140, 190, 230, 0.18);
+            border-radius: 18px;
+            background:
+                radial-gradient(ellipse at 80% 20%, rgba(104,155,194,.10), transparent 55%),
+                radial-gradient(ellipse at 15% 80%, rgba(42,100,148,.08), transparent 55%),
+                linear-gradient(160deg, #0a1119 0%, #070c12 100%);
+            box-shadow:
+                0 0 0 1px rgba(120, 190, 240, 0.04) inset,
+                0 20px 60px rgba(0, 0, 0, 0.5),
+                0 0 100px rgba(60, 140, 200, 0.05);
+            overflow: hidden;
+            animation: dzCardIn 1s cubic-bezier(.2,.8,.2,1) both;
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+        }
+
+        @keyframes dzCardIn {
+            from { opacity: 0; transform: translateY(18px) scale(0.99); }
+            to   { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        .dz-banner-text {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .dz-banner-title {
+            margin: 0 0 8px;
+            font-size: clamp(20px, 2.6vw, 30px);
+            line-height: 1.15;
+            font-weight: 600;
+            letter-spacing: -0.03em;
+            color: #ffffff;
+            text-shadow: 0 0 24px rgba(120, 200, 255, 0.15);
+        }
+
+        .dz-banner-subtitle {
+            max-width: 640px;
+            margin: 0 auto;
+            font-size: clamp(11.5px, 1.15vw, 13.5px);
+            line-height: 1.5;
+            font-weight: 400;
+            color: #b9cbdc;
+            letter-spacing: 0.005em;
+        }
+
+        .dz-banner-divider {
+            height: 1px;
+            width: 100%;
+            margin: 0 0 16px;
+            background: linear-gradient(
+                90deg,
+                transparent 0%,
+                rgba(140, 200, 240, 0.35) 20%,
+                rgba(160, 220, 255, 0.55) 50%,
+                rgba(140, 200, 240, 0.35) 80%,
+                transparent 100%
+            );
+            position: relative;
+        }
+
+        .dz-banner-art {
+            display: block;
+            width: 100%;
+            height: auto;
+            max-height: 220px;
+            overflow: visible;
+        }
+
+        .dz-flow {
+            stroke-dasharray: 8 14;
+            animation: dzFlow 2.6s linear infinite;
+        }
+
+        @keyframes dzFlow {
+            to { stroke-dashoffset: -88; }
+        }
+
+        .dz-pulse {
+            animation: dzPulse 3.4s ease-in-out infinite;
+            transform-origin: center;
+            transform-box: fill-box;
+        }
+
+        @keyframes dzPulse {
+            0%, 100% { opacity: 0.45; transform: scale(1); }
+            50%      { opacity: 0.08; transform: scale(1.07); }
+        }
+
+        .dz-spin-slow {
+            animation: dzSpin 18s linear infinite;
+            transform-origin: center;
+            transform-box: fill-box;
+        }
+
+        @keyframes dzSpin {
+            to { transform: rotate(360deg); }
         }
 
         /* GAVETA LATERAL */
@@ -624,36 +716,10 @@
                 gap: 20px;
                 align-items: start;
             }
-            .intro-text { grid-column: span 2; margin-bottom: 5px; }
+            .dz-banner-card { grid-column: span 2; }
             .col-left { display: flex; flex-direction: column; gap: 16px; }
             .col-right { display: flex; flex-direction: column; gap: 16px; position: sticky; top: 110px; }
             header { padding: 0 60px; }
-        }
-
-        .intro-text {
-            margin-bottom: 20px;
-            padding: 0 4px;
-        }
-
-        .intro-text h2 {
-            font-size: 1.35rem;
-            font-weight: 600;
-            color: var(--text-main);
-            margin-bottom: 8px;
-            letter-spacing: -0.4px;
-        }
-
-        [data-theme="dark"] .intro-text h2 .highlight-word {
-            background: linear-gradient(135deg, var(--text-main) 30%, var(--accent-cyan) 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .intro-text p {
-            font-size: 0.88rem;
-            color: var(--text-secondary);
-            line-height: 1.55;
-            font-weight: 400;
         }
 
         /* CAIXA DE PATRIMÓNIO TOTAL */
@@ -888,47 +954,35 @@
             padding-right: 4px; 
         }
 
-        .scanner-state { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 24px 0; gap: 16px; color: var(--text-secondary); text-align: center; }
+        .scanner-state { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px 0; gap: 14px; color: var(--text-secondary); text-align: center; }
 
-        /* ESFERA HOLOGRÁFICA */
-        .globe-container {
-            width: 130px; 
-            height: 130px; 
+        /* ILUSTRAÇÃO DA CARTEIRA MINIMALISTA (CINZA CLARO DISCRETO) */
+        .wallet-art-container {
+            width: 130px;
+            height: 130px;
             border-radius: 50%;
-            background: var(--globe-bg-grad);
-            box-shadow: var(--globe-shadow);
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
-            position: relative; 
-            overflow: hidden; 
-            border: 1px solid var(--globe-border);
+            background: rgba(255, 255, 255, 0.015);
+            border: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.2);
         }
 
-        .globe-grid {
-            width: 100%; height: 100%; position: absolute;
-            background-image: 
-                linear-gradient(90deg, var(--globe-grid-color-1) 1px, transparent 1px), 
-                linear-gradient(0deg, var(--globe-grid-color-2) 1px, transparent 1px);
-            background-size: 24px 24px; 
-            animation: rotateGrid 8s linear infinite;
+        .wallet-art-container::before {
+            content: "";
+            position: absolute;
+            inset: 8px;
+            border-radius: 50%;
+            border: 1px dashed var(--border-color);
+            opacity: 0.6;
+            animation: spinWalletRing 25s linear infinite;
         }
 
-        @keyframes rotateGrid { 0% { background-position: 0 0; } 100% { background-position: 24px 0; } }
-
-        .globe-text-marquee {
-            position: absolute; width: 300%; display: flex; justify-content: space-around; white-space: nowrap; animation: moveText 16s linear infinite; z-index: 2; pointer-events: none;
+        @keyframes spinWalletRing {
+            to { transform: rotate(360deg); }
         }
-
-        .globe-text-marquee span { 
-            font-size: 0.65rem; 
-            font-weight: 600; 
-            letter-spacing: 2px; 
-            color: var(--globe-marquee-color); 
-            text-shadow: var(--globe-marquee-shadow); 
-        }
-
-        @keyframes moveText { 0% { transform: translateX(33%); } 100% { transform: translateX(-33%); } }
 
         /* CARTÃO DE RESUMO PROFISSIONAL */
         .card-summary-pro {
@@ -1181,7 +1235,21 @@
         input[type="checkbox"]:disabled { opacity: 0.4; cursor: not-allowed; background-color: var(--token-icon-bg); }
 
         .action-btn {
-            width: 100%; background: linear-gradient(135deg, #07875B, #056a47); color: white; border: none; padding: 16px; border-radius: 14px; font-size: 1rem; font-weight: 600; cursor: pointer; box-shadow: 0 4px 20px rgba(7, 135, 91, 0.25); display: flex; align-items: center; justify-content: center; gap: 10px;
+            width: 100%; 
+            background: linear-gradient(135deg, #07875B, #056a47); 
+            color: white; 
+            border: none; 
+            padding: 16px; 
+            border-radius: 14px; 
+            font-size: 1rem; 
+            font-weight: 600; 
+            cursor: pointer; 
+            box-shadow: 0 4px 20px rgba(7, 135, 91, 0.25); 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            gap: 10px;
+            margin-top: 16px;
         }
         .action-btn:disabled { background: var(--token-icon-bg); color: var(--text-secondary); border: 1px solid var(--border-color); cursor: not-allowed; box-shadow: none; }
 
@@ -1361,11 +1429,124 @@
         </div>
     </div>
 
-    <!-- CONTAINER PRINCIPAL COM ESTRUTURA RESPONSIVA PARA PC E MOBILE -->
+    <!-- CONTAINER PRINCIPAL COM O BANNER E O DASHBOARD -->
     <div class="container">
-        <div class="intro-text">
-            <h2 id="introTitle">Smart Asset <span class="highlight-word">Consolidation</span></h2>
-            <p id="introDesc">Connect your wallet to the Arc network to detect and convert small residual balances into stablecoins seamlessly.</p>
+        
+        <!-- BANNER SVG ANIMADO INTEGRADO -->
+        <div class="dz-banner-card">
+            <div class="dz-banner-text">
+                <h1 id="introTitle" class="dz-banner-title">Smart Asset <span style="color: var(--accent-cyan);">Consolidation</span></h1>
+                <p id="introDesc" class="dz-banner-subtitle">
+                    Connect your wallet to the Arc network to detect and convert small residual balances into stablecoins seamlessly.
+                </p>
+            </div>
+
+            <div class="dz-banner-divider"></div>
+
+            <svg class="dz-banner-art" viewBox="0 0 1100 220" role="img"
+                 aria-label="Dust Zero consolidando tokens para a rede Arc e convertendo em stablecoin">
+                <defs>
+                    <linearGradient id="dzCoinFill" x1="0" y1="0" x2="1" y2="1">
+                        <stop offset="0"   stop-color="#f2fbff"/>
+                        <stop offset=".48" stop-color="#9dbdd8"/>
+                        <stop offset="1"   stop-color="#3a5672"/>
+                    </linearGradient>
+                    <linearGradient id="dzArcFill" x1="0" y1="0" x2="1" y2="1">
+                        <stop offset="0" stop-color="#e6f9ff"/>
+                        <stop offset="1" stop-color="#74bce8"/>
+                    </linearGradient>
+                    <radialGradient id="dzHalo">
+                        <stop offset="0" stop-color="#8adfff" stop-opacity=".32"/>
+                        <stop offset="1" stop-color="#8adfff" stop-opacity="0"/>
+                    </radialGradient>
+                    <radialGradient id="dzHaloSoft">
+                        <stop offset="0" stop-color="#8adfff" stop-opacity=".18"/>
+                        <stop offset="1" stop-color="#8adfff" stop-opacity="0"/>
+                    </radialGradient>
+                    <filter id="dzSoftGlow" x="-80%" y="-80%" width="260%" height="260%">
+                        <feGaussianBlur stdDeviation="5" result="blur"/>
+                        <feMerge>
+                            <feMergeNode in="blur"/>
+                            <feMergeNode in="SourceGraphic"/>
+                        </feMerge>
+                    </filter>
+                    <filter id="dzStrongGlow" x="-100%" y="-100%" width="300%" height="300%">
+                        <feGaussianBlur stdDeviation="8" result="blur"/>
+                        <feMerge>
+                            <feMergeNode in="blur"/>
+                            <feMergeNode in="SourceGraphic"/>
+                        </feMerge>
+                    </filter>
+                </defs>
+
+                <ellipse cx="200" cy="110" rx="180" ry="85" fill="url(#dzHaloSoft)"/>
+
+                <g opacity=".95">
+                    <circle cx="45"  cy="75"  r="13" fill="url(#dzCoinFill)" stroke="#d6edff" stroke-width="1.6"/>
+                    <text x="45"  y="80"  text-anchor="middle" fill="#27425a" font-size="14" font-weight="700">A</text>
+                    <circle cx="85"  cy="150" r="16" fill="url(#dzCoinFill)" stroke="#d6edff" stroke-width="1.6"/>
+                    <text x="85"  y="156" text-anchor="middle" fill="#27425a" font-size="17" font-weight="700">A</text>
+                    <circle cx="145" cy="55"  r="9"  fill="url(#dzCoinFill)" stroke="#d6edff" stroke-width="1.4"/>
+                    <text x="145" y="59"  text-anchor="middle" fill="#27425a" font-size="9"  font-weight="700">A</text>
+                    <circle cx="165" cy="170" r="11" fill="url(#dzCoinFill)" stroke="#d6edff" stroke-width="1.5"/>
+                    <text x="165" y="175" text-anchor="middle" fill="#27425a" font-size="11" font-weight="700">A</text>
+                </g>
+
+                <g fill="none" stroke="#9fc9e8" stroke-width="1.1" opacity=".5">
+                    <path d="M58 75 H160 Q180 75 195 60 L230 28 H285"/>
+                    <path d="M101 150 H170 Q190 150 205 135 L250 90 H290"/>
+                    <path d="M154 55 H170 Q185 55 200 42 L225 30 H290"/>
+                    <path d="M176 170 H185 Q205 170 220 182 L255 205 H290"/>
+                </g>
+
+                <g fill="none" stroke="#bdeaff" stroke-width="1.5" opacity=".8">
+                    <path d="M245 65 C270 65 278 82 305 96 S345 115 375 115"/>
+                    <path d="M250 175 C275 175 285 155 308 140 S350 122 375 115"/>
+                    <path d="M265 115 C290 115 300 115 330 115 H375"/>
+                </g>
+
+                <!-- DUST ZERO (DZ) -->
+                <circle cx="410" cy="115" r="52" fill="url(#dzHalo)"/>
+                <circle cx="410" cy="115" r="40" fill="url(#dzHaloSoft)" class="dz-pulse"/>
+                <circle cx="410" cy="115" r="43" fill="none" stroke="#b5e9ff" stroke-opacity=".4" stroke-width="1.1" stroke-dasharray="2 8" class="dz-spin-slow"/>
+                <circle cx="410" cy="115" r="34" fill="#0d1a28" stroke="#a9dfff" stroke-width="1.4" filter="url(#dzSoftGlow)"/>
+                <text x="410" y="124" text-anchor="middle" fill="url(#dzArcFill)" font-size="24" font-weight="700" letter-spacing="1" filter="url(#dzSoftGlow)">DZ</text>
+
+                <!-- FLUXO DZ → A -->
+                <path class="dz-flow" d="M455 115 H565" fill="none" stroke="#bdeaff" stroke-width="1.6" opacity=".9"/>
+
+                <g opacity=".95">
+                    <circle cx="485" cy="84"  r="8" fill="url(#dzCoinFill)" stroke="#d6edff" stroke-width="1.4"/>
+                    <text x="485" y="88"  text-anchor="middle" fill="#27425a" font-size="9" font-weight="700">A</text>
+                    <circle cx="498" cy="146" r="7" fill="url(#dzCoinFill)" stroke="#d6edff" stroke-width="1.3"/>
+                    <text x="498" y="150" text-anchor="middle" fill="#27425a" font-size="8" font-weight="700">A</text>
+                </g>
+
+                <!-- ARC (A) -->
+                <circle cx="625" cy="115" r="65" fill="url(#dzHalo)"/>
+                <circle cx="625" cy="115" r="52" fill="url(#dzHaloSoft)" class="dz-pulse-delay"/>
+                <circle cx="625" cy="115" r="57" fill="none" stroke="#9edcff" stroke-opacity=".35" stroke-dasharray="3 9" stroke-width="1" class="dz-spin-slow"/>
+                <circle cx="625" cy="115" r="48" fill="#0c1724" stroke="#91ccec" stroke-width="1.6" filter="url(#dzSoftGlow)"/>
+                <path d="M610 133 L623 98 Q625 92 628 98 L641 133 L631 133 L625 117 L619 133 Z" fill="url(#dzArcFill)" filter="url(#dzSoftGlow)"/>
+
+                <!-- FLUXO A → $ -->
+                <path class="dz-flow" d="M690 115 H795" fill="none" stroke="#bdeaff" stroke-width="1.6" opacity=".9"/>
+
+                <g>
+                    <circle cx="722" cy="92"  r="9"  fill="url(#dzCoinFill)" stroke="#d6edff" stroke-width="1.4"/>
+                    <text x="722" y="96"  text-anchor="middle" fill="#27425a" font-size="10" font-weight="700">$</text>
+                    <circle cx="735" cy="140" r="10" fill="url(#dzCoinFill)" stroke="#d6edff" stroke-width="1.4"/>
+                    <text x="735" y="144" text-anchor="middle" fill="#27425a" font-size="11" font-weight="700">$</text>
+                    <circle cx="758" cy="115" r="13" fill="url(#dzCoinFill)" stroke="#d6edff" stroke-width="1.5"/>
+                    <text x="758" y="120" text-anchor="middle" fill="#27425a" font-size="14" font-weight="700">$</text>
+                </g>
+
+                <!-- STABLECOIN ($) -->
+                <circle cx="875" cy="115" r="72" fill="url(#dzHalo)"/>
+                <circle cx="875" cy="115" r="60" fill="url(#dzHaloSoft)" class="dz-pulse"/>
+                <circle cx="875" cy="115" r="56" fill="url(#dzCoinFill)" stroke="#d6edff" stroke-width="2" filter="url(#dzStrongGlow)"/>
+                <text x="875" y="138" text-anchor="middle" fill="#263f58" stroke="#f0f9ff" stroke-width="1" font-size="58" font-weight="600">$</text>
+            </svg>
         </div>
 
         <!-- COLUNA ESQUERDA (NO PC) / TOPO (NO MOBILE) -->
@@ -1431,13 +1612,12 @@
                 
                 <div class="token-list" id="tokenList">
                     <div class="scanner-state">
-                        <div class="globe-container">
-                            <div class="globe-grid"></div>
-                            <div class="globe-text-marquee">
-                                <span>ARC MAINNET</span>
-                                <span>DUST ZERO</span>
-                                <span>ARC MAINNET</span>
-                            </div>
+                        <div class="wallet-art-container">
+                            <svg width="60" height="46" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="color: var(--text-secondary);">
+                                <path d="M20 12V8H6a2 2 0 0 1-2-2c0-1.1.9-2 2-2h12v4"/>
+                                <path d="M4 6v12a2 2 0 0 0 2 2h14v-4"/>
+                                <path d="M18 12a2 2 0 0 0 0 4h4v-4Z"/>
+                            </svg>
                         </div>
                         <p id="scanPrompt" style="font-size: 0.85rem; font-weight: 500;">Connect wallet to scan Arc network...</p>
                     </div>
@@ -1526,6 +1706,43 @@
         const ARC_CHAIN_ID_HEX = '0x13B2';
         const ARC_RPC_URL = 'https://rpc.mainnet.arc.io';
 
+        // ===== TOKENS REAIS (lidos da blockchain) =====
+        let baseTokens = [];
+
+        // Função que busca o saldo real de USDC na Arc
+        async function fetchRealUSDC() {
+            if (!provider || !userAddress) return;
+
+            try {
+                // 1. Lê o saldo nativo (18 decimais)
+                const nativeBalance = await provider.getBalance(userAddress);
+                
+                // 2. Converte para número legível
+                const usdcAmount = parseFloat(ethers.formatEther(nativeBalance));
+
+                // 3. Cria o token real na lista
+                if (usdcAmount > 0) {
+                    baseTokens = [{
+                        id: 1,
+                        symbol: 'USDC',
+                        name: 'USD Coin',
+                        balance: usdcAmount.toFixed(6),
+                        usdValue: usdcAmount,
+                        status: 'ok',
+                        selected: false
+                    }];
+                } else {
+                    baseTokens = [];
+                }
+
+                console.log('USDC lido da carteira:', usdcAmount);
+
+            } catch (error) {
+                console.error("Erro ao ler saldo real de USDC:", error);
+                baseTokens = [];
+            }
+        }
+
         const translations = {
             en: {
                 connect: "Connect",
@@ -1542,7 +1759,7 @@
                 themeDescLight: "Light mode active",
                 walletConnectedLabel: "Connected Wallet",
                 disconnectBtnText: "Disconnect Wallet",
-                introTitle: 'Smart Asset <span class="highlight-word">Consolidation</span>',
+                introTitle: 'Smart Asset <span style="color: var(--accent-cyan);">Consolidation</span>',
                 introDesc: "Connect your wallet to the Arc network to detect and convert small residual balances into stablecoins seamlessly.",
                 wealthTitle: "Total Wealth on Arc",
                 wealthSub: "Estimated value in USDC",
@@ -1585,7 +1802,7 @@
                 themeDescLight: "Modo claro ativo",
                 walletConnectedLabel: "Carteira conectada",
                 disconnectBtnText: "Desconectar carteira",
-                introTitle: 'Consolidação Inteligente de <span class="highlight-word">Ativos</span>',
+                introTitle: 'Consolidação Inteligente de <span style="color: var(--accent-cyan);">Ativos</span>',
                 introDesc: "Conecte sua carteira na rede Arc para detetar e converter pequenos saldos residuais em stablecoins de forma totalmente automatizada.",
                 wealthTitle: "Patrimônio Total na Arc",
                 wealthSub: "Valor estimado em USDC",
@@ -1628,7 +1845,7 @@
                 themeDescLight: "Modo claro activo",
                 walletConnectedLabel: "Cartera conectada",
                 disconnectBtnText: "Desconectar cartera",
-                introTitle: 'Consolidación Inteligente de <span class="highlight-word">Ativos</span>',
+                introTitle: 'Consolidación Inteligente de <span style="color: var(--accent-cyan);">Ativos</span>',
                 introDesc: "Conecta tu cartera a la red Arc para detectar y convertir pequeños saldos residuales en stablecoins de forma automatizada.",
                 wealthTitle: "Patrimonio Total en Arc",
                 wealthSub: "Valor estimado en USDC",
@@ -1657,15 +1874,6 @@
                 highValueText: "Por encima del límite de $5"
             }
         };
-
-        let baseTokens = [
-            { id: 1, symbol: 'OLD', name: 'Old Token A', balance: '450.50', usdValue: 0.42, status: 'ok', selected: false },
-            { id: 2, symbol: 'TEST', name: 'Testnet Coin', balance: '1,200.00', usdValue: 0.15, status: 'ok', selected: false },
-            { id: 3, symbol: 'WHALE', name: 'Big Token', balance: '25.00', usdValue: 24.50, status: 'high_value', selected: false },
-            { id: 4, symbol: 'DROP', name: 'Airdrop Dust', balance: '12.30', usdValue: 0.05, status: 'ok', selected: false },
-            { id: 5, symbol: 'DUST', name: 'Ghost Token', balance: '99.00', usdValue: 0.12, status: 'high_slippage', selected: false },
-            { id: 6, symbol: 'VOID', name: 'Dead Vault', balance: '10.00', usdValue: 0.03, status: 'no_liquidity', selected: false }
-        ];
 
         function toggleSidebar() {
             const sidebar = document.getElementById('sidebar');
@@ -1785,7 +1993,6 @@
             if (isConnected) renderTokens();
         }
 
-        // CONEXÃO REAL COM A CARTEIRA NA ARC MAINNET (USANDO ETHERS.JS)
         async function connectRealWallet(walletType) {
             closeWalletModal();
             const t = translations[currentLang];
@@ -1846,7 +2053,7 @@
             toggleSidebar();
         }
 
-        function setConnectionState(connect) {
+        async function setConnectionState(connect) {
             isConnected = connect;
             const btn = document.getElementById('connectBtn');
             const walletSection = document.getElementById('walletSection');
@@ -1864,6 +2071,10 @@
                 statusDot.classList.add('active');
                 reviewStep = false;
                 reviewCard.classList.remove('active');
+
+                // ===== BUSCA SALDO REAL DA BLOCKCHAIN =====
+                await fetchRealUSDC();
+                
                 renderTokens();
                 updateSelectButtonState();
                 updateTotal();
@@ -1886,13 +2097,12 @@
 
                 document.getElementById('tokenList').innerHTML = `
                     <div class="scanner-state">
-                        <div class="globe-container">
-                            <div class="globe-grid"></div>
-                            <div class="globe-text-marquee">
-                                <span>ARC MAINNET</span>
-                                <span>DUST ZERO</span>
-                                <span>ARC MAINNET</span>
-                            </div>
+                        <div class="wallet-art-container">
+                            <svg width="60" height="46" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="color: var(--text-secondary);">
+                                <path d="M20 12V8H6a2 2 0 0 1-2-2c0-1.1.9-2 2-2h12v4"/>
+                                <path d="M4 6v12a2 2 0 0 0 2 2h14v-4"/>
+                                <path d="M18 12a2 2 0 0 0 0 4h4v-4Z"/>
+                            </svg>
                         </div>
                         <p id="scanPrompt" style="font-size: 0.85rem; font-weight: 500;">${t.scanPrompt}</p>
                     </div>
@@ -2014,11 +2224,16 @@
         }
 
         function updateTotal() {
-            let total = 0;
-            let totalPortfolio = 128.46;
+            let totalSelectedValue = 0;
+            let totalPortfolioValue = 0;
 
             baseTokens.forEach(token => {
-                if (token.selected && token.status === 'ok') total += token.usdValue;
+                if (token.status !== 'no_liquidity') {
+                    totalPortfolioValue += token.usdValue;
+                    if (token.selected) {
+                        totalSelectedValue += token.usdValue;
+                    }
+                }
             });
 
             let prefix = '$';
@@ -2027,18 +2242,20 @@
             let gasFee = 0.01;
 
             if (currentCurrency === 'EURC') {
-                total = total * exchangeRate;
-                totalPortfolio = totalPortfolio * exchangeRate;
+                totalSelectedValue = totalSelectedValue * exchangeRate;
+                totalPortfolioValue = totalPortfolioValue * exchangeRate;
                 totalFee = totalFee * exchangeRate;
                 swapFee = swapFee * exchangeRate;
                 gasFee = gasFee * exchangeRate;
                 prefix = '€';
             }
 
-            let finalReceived = Math.max(0, total - totalFee);
+            let finalReceived = Math.max(0, totalSelectedValue - totalFee);
+
+            document.getElementById('wealthAmount').textContent = 
+                isConnected ? `${prefix}${totalPortfolioValue.toFixed(2)}` : `${prefix}0.00`;
             
-            document.getElementById('wealthAmount').textContent = isConnected ? `${prefix}${totalPortfolio.toFixed(2)}` : `${prefix}0.00`;
-            document.getElementById('valSelectedAmount').textContent = `${prefix}${total.toFixed(2)}`;
+            document.getElementById('valSelectedAmount').textContent = `${prefix}${totalSelectedValue.toFixed(2)}`;
             document.getElementById('valReceiveAmount').textContent = `${prefix}${finalReceived.toFixed(2)}`;
             document.getElementById('valTotalFees').textContent = `~${prefix}${totalFee.toFixed(2)}`;
             document.getElementById('valSwapFee').textContent = `~${prefix}${swapFee.toFixed(2)}`;
@@ -2093,4 +2310,4 @@
         }
     </script>
 </body>
-</html>
+    </html>
