@@ -815,7 +815,11 @@
             overflow: hidden;
         }
 
-        .token-icon img { width: 100%; height: 100%; object-fit: cover; border-radius: 10px; }
+        .token-icon img {
+            width: 100%; height: 100%;
+            object-fit: cover;
+            border-radius: 10px;
+        }
 
         .warning-badge-overlay {
             position: absolute; bottom: -3px; right: -3px;
@@ -1334,7 +1338,12 @@
         const ARC_CHAIN_ID_HEX = '0x13B2';
         const ARC_RPC_URL = 'https://rpc.mainnet.arc.io';
 
-        // ==================== CONTRATO USDC (ERC-20) ====================
+        // ==================== ZERION API ====================
+        const ZERION_API_KEY = 'zk_f68b2335af234810a78ab6cba18b73f7';
+        const ZERION_BASE_URL = 'https://api.zerion.io/v1';
+        const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutos
+
+        // ==================== USDC CONTRACT (fallback) ====================
         const USDC_ERC20_ADDRESS = '0x3600000000000000000000000000000000000000';
         const ERC20_ABI = [
             "function balanceOf(address owner) view returns (uint256)",
@@ -1343,19 +1352,100 @@
             "function name() view returns (string)"
         ];
 
-        // ==================== TOKENS (lidos da blockchain) ====================
+        // ==================== TOKENS ====================
         let baseTokens = [];
 
-        // ==================== LEITURA REAL DE SALDO (ERC-20) ====================
-        async function fetchRealUSDC() {
+        // ==================== LEITURA REAL (ZERION) ====================
+        async function fetchRealPortfolio() {
+            if (!userAddress) return;
+
+            const cacheKey = `dz_portfolio_${userAddress.toLowerCase()}`;
+            const cached = localStorage.getItem(cacheKey);
+            
+            if (cached) {
+                try {
+                    const parsed = JSON.parse(cached);
+                    if (Date.now() - parsed.timestamp < CACHE_TTL_MS) {
+                        console.log('📦 Usando cache da Zerion');
+                        baseTokens = parsed.tokens;
+                        return;
+                    }
+                } catch (e) {
+                    console.warn('Cache inválido, ignorando');
+                }
+            }
+
+            try {
+                const url = `${ZERION_BASE_URL}/wallets/${userAddress}/positions/?currency=usd&filter[chain_ids]=arc`;
+                const auth = btoa(`${ZERION_API_KEY}:`);
+                
+                console.log('🔍 Buscando portfólio na Zerion...');
+
+                const response = await fetch(url, {
+                    headers: {
+                        'accept': 'application/json',
+                        'authorization': `Basic ${auth}`
+                    }
+                });
+
+                if (!response.ok) {
+                    if (response.status === 429) {
+                        console.warn('⚠️ Zerion: limite de requisições atingido');
+                        return;
+                    }
+                    throw new Error(`Zerion HTTP ${response.status}`);
+                }
+
+                const json = await response.json();
+                const positions = json.data || [];
+                
+                console.log(`📊 Zerion retornou ${positions.length} posições`);
+
+                baseTokens = positions
+                    .filter(p => {
+                        const qty = p.attributes?.quantity?.float;
+                        return qty && qty > 0;
+                    })
+                    .map((p, index) => {
+                        const attrs = p.attributes;
+                        const fi = attrs.fungible_info || {};
+                        const qty = attrs.quantity?.float || 0;
+                        const value = attrs.value || 0;
+
+                        return {
+                            id: index + 1,
+                            symbol: fi.symbol || 'UNKNOWN',
+                            name: fi.name || 'Unknown Token',
+                            balance: qty.toFixed(6),
+                            usdValue: value,
+                            logo: fi.icon?.url || null,
+                            status: 'ok',
+                            selected: false
+                        };
+                    })
+                    .sort((a, b) => b.usdValue - a.usdValue);
+
+                console.log(`✅ Zerion: ${baseTokens.length} tokens encontrados`);
+                
+                localStorage.setItem(cacheKey, JSON.stringify({
+                    timestamp: Date.now(),
+                    tokens: baseTokens
+                }));
+
+            } catch (error) {
+                console.error('❌ Erro na Zerion API:', error);
+                await fetchRealUSDCFallback();
+            }
+        }
+
+        // ==================== FALLBACK (RPC) ====================
+        async function fetchRealUSDCFallback() {
             if (!provider || !userAddress) return;
 
             try {
                 const usdcContract = new ethers.Contract(USDC_ERC20_ADDRESS, ERC20_ABI, provider);
                 const rawBalance = await usdcContract.balanceOf(userAddress);
                 const usdcAmount = parseFloat(ethers.formatUnits(rawBalance, 6));
-
-                console.log('USDC ERC-20 lido:', usdcAmount);
 
                 if (usdcAmount > 0) {
                     baseTokens = [{
@@ -1364,39 +1454,17 @@
                         name: 'USD Coin',
                         balance: usdcAmount.toFixed(6),
                         usdValue: usdcAmount,
+                        logo: null,
                         status: 'ok',
                         selected: false
                     }];
                 } else {
                     baseTokens = [];
                 }
+                console.log('🔄 Fallback RPC usado');
             } catch (error) {
-                console.error("Erro ao ler USDC ERC-20:", error);
-
-                // Fallback: tenta ler o saldo nativo (18 decimais)
-                try {
-                    const nativeBalance = await provider.getBalance(userAddress);
-                    const usdcAmount = parseFloat(ethers.formatEther(nativeBalance));
-
-                    console.log('Fallback - saldo nativo:', usdcAmount);
-
-                    if (usdcAmount > 0) {
-                        baseTokens = [{
-                            id: 1,
-                            symbol: 'USDC',
-                            name: 'USD Coin',
-                            balance: usdcAmount.toFixed(6),
-                            usdValue: usdcAmount,
-                            status: 'ok',
-                            selected: false
-                        }];
-                    } else {
-                        baseTokens = [];
-                    }
-                } catch (fallbackError) {
-                    console.error("Erro no fallback:", fallbackError);
-                    baseTokens = [];
-                }
+                console.error("Erro no fallback:", error);
+                baseTokens = [];
             }
         }
 
@@ -1588,7 +1656,6 @@
             document.getElementById('segEurc').classList.toggle('active', currency === 'EURC');
             document.getElementById('currentCurrencyTag').textContent = currency;
 
-            // Reset status dos tokens ao trocar moeda
             baseTokens.forEach(token => {
                 if (token.status === 'same_currency' || token.status === 'high_value') {
                     token.status = 'ok';
@@ -1670,6 +1737,9 @@
         }
 
         function handleMenuDisconnect() {
+            if (userAddress) {
+                localStorage.removeItem(`dz_portfolio_${userAddress.toLowerCase()}`);
+            }
             setConnectionState(false);
             toggleSidebar();
         }
@@ -1693,8 +1763,7 @@
                 reviewStep = false;
                 reviewCard.classList.remove('active');
 
-                // LÊ SALDO REAL
-                await fetchRealUSDC();
+                await fetchRealPortfolio();
 
                 renderTokens();
                 updateSelectButtonState();
@@ -1765,13 +1834,11 @@
             }
 
             baseTokens.forEach(token => {
-                // Regra 1: acima do limite
                 if (token.usdValue > DUST_LIMIT_USD && token.status === 'ok') {
                     token.status = 'high_value';
                     token.selected = false;
                 }
 
-                // Regra 2: mesma moeda que o destino
                 if (token.symbol === currentCurrency && token.status === 'ok') {
                     token.status = 'same_currency';
                     token.selected = false;
@@ -1809,12 +1876,17 @@
                     warningBadgeHTML = `<div class="warning-badge-overlay">i</div>`;
                 }
 
+                // Renderiza o logo se disponível, senão usa as 2 primeiras letras
+                const iconContent = token.logo
+                    ? `<img src="${token.logo}" alt="${token.symbol}" onerror="this.style.display='none';this.parentNode.textContent='${token.symbol.substring(0,2)}';">`
+                    : token.symbol.substring(0,2);
+
                 const item = document.createElement('div');
                 item.className = 'token-item';
                 item.innerHTML = `
                     <div class="token-info">
                         <div class="token-icon-wrapper">
-                            <div class="token-icon">${token.symbol.substring(0,2)}</div>
+                            <div class="token-icon">${iconContent}</div>
                             ${warningBadgeHTML}
                         </div>
                         <div>
@@ -1923,7 +1995,6 @@
                 btn.textContent = t.btnConfirm;
                 reviewCard.scrollIntoView({ behavior: 'smooth' });
             } else {
-                // TODO: Implementar transação real (Fase 3)
                 btn.disabled = true;
                 btn.innerHTML = `<span class="spinner-icon"></span> ${t.btnProcessing}`;
 
