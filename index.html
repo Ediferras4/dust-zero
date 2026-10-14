@@ -50,8 +50,8 @@ const ARC = {
 
 const CONFIG = {
   USDC:   '0x3600000000000000000000000000000000000000',
-  ROUTER: '0xEA0129203FBB99ebEea3f78B2d05b924f17FB556', // AchSwapV3Router (verificado)
-  QUOTER: '0x659Da32F3F10566bDB6B55Ad84c182f1D00Ba058', // AchSwapV3QuoterV2 (verificado)
+  ROUTER: '0xEA0129203FBB99ebEea3f78B2d05b924f17FB556', // AchSwapV3Router
+  QUOTER: '0x659Da32F3F10566bDB6B55Ad84c182f1D00Ba058', // AchSwapV3QuoterV2
   FEES: [100, 500, 3000, 10000],
   MIN_VALUE_USDC: 0.05,
   MAX_VALUE_USDC: 5,
@@ -116,7 +116,7 @@ async function connect() {
 
 // ===== LEITURA DA CARTEIRA VIA API DO EXPLORER =====
 async function fetchTokens() {
-  const url = `${ARC.explorer}/api/v2/addresses/${account}/token-balances`;
+  const url = `\( {ARC.explorer}/api/v2/addresses/ \){account}/token-balances`;
   const r = await fetch(url);
   if (!r.ok) throw new Error('API do explorer respondeu ' + r.status);
   const data = await r.json();
@@ -129,10 +129,11 @@ async function fetchTokens() {
       decimals: Number(x.token.decimals || 18),
       logo: x.token.icon_url || null,
       raw: BigInt(x.value),
+      exchangeRate: x.token.exchange_rate ? Number(x.token.exchange_rate) : null, // ← novo
     }));
 }
 
-// ===== COTAÇÃO: testa cada fee tier e registra o resultado =====
+// ===== COTAÇÃO: testa cada fee tier =====
 async function quoteBest(tokenIn, amountIn, symbol) {
   let best = null;
   for (const fee of CONFIG.FEES) {
@@ -144,7 +145,7 @@ async function quoteBest(tokenIn, amountIn, symbol) {
       log(`${symbol} fee ${fee}: ${usdc(out)} USDC`);
       if (out > 0n && (!best || out > best.out)) best = { out, fee };
     } catch (e) {
-      log(`${symbol} fee ${fee}: sem pool (${(e.shortMessage || e.message || '').slice(0, 60)})`);
+      log(`${symbol} fee \( {fee}: sem pool ( \){(e.shortMessage || e.message || '').slice(0, 60)})`);
     }
   }
   return best;
@@ -164,18 +165,37 @@ async function scan() {
       .slice(0, CONFIG.MAX_TOKENS_SCANNED);
 
     for (const t of tokens) {
-      log(`${t.symbol}: saldo bruto ${t.raw} (${t.decimals} casas)`);
-      const row = { ...t, out: 0n, fee: 0, reason: '', selected: false };
+      log(`${t.symbol}: saldo bruto \( {t.raw} ( \){t.decimals} casas)`);
+
+      const row = { ...t, out: 0n, fee: 0, reason: '', selected: false, estimatedUSDC: 0 };
+
+      // 1. Tenta usar o exchange_rate da API (mais confiável)
+      if (t.exchangeRate && t.exchangeRate > 0) {
+        const amount = Number(ethers.formatUnits(t.raw, t.decimals));
+        row.estimatedUSDC = amount * t.exchangeRate;
+        log(`${t.symbol}: valor pela API = ${row.estimatedUSDC.toFixed(4)} USDC (rate ${t.exchangeRate})`);
+      }
+
+      // 2. Também tenta cotar no Quoter (para pegar o fee tier real)
       const best = await quoteBest(t.address, t.raw, t.symbol);
-      if (!best) {
-        row.reason = 'Sem pool ou sem liquidez contra USDC';
-      } else {
+      if (best) {
         row.out = best.out;
         row.fee = best.fee;
-        const v = Number(ethers.formatUnits(best.out, 6));
-        if (v < CONFIG.MIN_VALUE_USDC) row.reason = 'Valor estimado abaixo de 0,05 USDC';
-        else if (v > CONFIG.MAX_VALUE_USDC) row.reason = 'Valor estimado acima de 5 USDC';
+        // Se a API não tinha preço, usa o do Quoter
+        if (!row.estimatedUSDC) {
+          row.estimatedUSDC = Number(ethers.formatUnits(best.out, 6));
+        }
       }
+
+      // 3. Decide elegibilidade pelo valor estimado
+      if (row.estimatedUSDC < CONFIG.MIN_VALUE_USDC) {
+        row.reason = `Valor estimado abaixo de ${CONFIG.MIN_VALUE_USDC} USDC`;
+      } else if (row.estimatedUSDC > CONFIG.MAX_VALUE_USDC) {
+        row.reason = `Valor estimado acima de ${CONFIG.MAX_VALUE_USDC} USDC`;
+      } else if (!best) {
+        row.reason = 'Sem pool ou sem liquidez contra USDC';
+      }
+
       items.push(row);
     }
   } catch (e) {
@@ -224,11 +244,7 @@ function render() {
 
     const valor = document.createElement('div');
     valor.className = 'line';
-    if (it.out > 0n) {
-      valor.textContent = 'Valor estimado: ' + usdc(it.out) + ' USDC · fee ' + (it.fee / 10000) + '%';
-    } else {
-      valor.textContent = 'Valor estimado: sem cotação';
-    }
+    valor.textContent = 'Valor estimado: ' + it.estimatedUSDC.toFixed(4) + ' USDC' + (it.fee ? ` · fee ${it.fee/10000}%` : '');
 
     info.append(name, saldo, valor);
 
@@ -264,17 +280,17 @@ function selected() {
 
 function updateReview() {
   const sel = selected();
-  const total = sel.reduce((a, i) => a + i.out, 0n);
+  const total = sel.reduce((a, i) => a + i.estimatedUSDC, 0);
   const gasUnits = CONFIG.GAS_UNITS_BATCH + BigInt(sel.length) * CONFIG.GAS_UNITS_APPROVE;
-  const gas = (gasPrice * gasUnits) / 1000000000000n; // gas usa 18 casas; USDC ERC-20 usa 6
+  const gas = Number(ethers.formatUnits((gasPrice * gasUnits), 18)); // gas em USDC (18 casas)
   $('selCount').textContent = sel.length;
-  $('recv').textContent = usdc(total);
-  $('gasEst').textContent = usdc(gas);
+  $('recv').textContent = total.toFixed(4);
+  $('gasEst').textContent = gas.toFixed(4);
   $('review').style.display = sel.length ? 'block' : 'none';
   $('go').disabled = !sel.length;
 }
 
-// ===== EXECUÇÃO: aprovações + um lote (multicall) =====
+// ===== EXECUÇÃO =====
 async function executeBatch() {
   const sel = selected();
   if (!sel.length) return;
@@ -293,11 +309,14 @@ async function executeBatch() {
     const deadline = Math.floor(Date.now() / 1000) + CONFIG.DEADLINE_SEC;
     const iface = new ethers.Interface(ROUTER_ABI);
     const calls = sel.map(t => {
-      const minOut = (t.out * (10000n - CONFIG.SLIPPAGE_BPS)) / 10000n;
+      // Usa o out do quoter se tiver, senão estima com slippage alto
+      const minOut = t.out > 0n 
+        ? (t.out * (10000n - CONFIG.SLIPPAGE_BPS)) / 10000n 
+        : 0n;
       return iface.encodeFunctionData('exactInputSingle', [{
         tokenIn: t.address,
         tokenOut: CONFIG.USDC,
-        fee: t.fee,
+        fee: t.fee || 3000,
         recipient: account,
         deadline,
         amountIn: t.raw,
@@ -311,7 +330,7 @@ async function executeBatch() {
     const tx = await router.multicall(calls);
     log('Enviado: ' + tx.hash);
     await tx.wait();
-    log('Concluído. Se alguma troca falhar, o lote inteiro é revertido.');
+    log('Concluído.');
     await scan();
   } catch (e) {
     log('Erro: ' + (e.shortMessage || e.message));
