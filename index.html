@@ -51,13 +51,13 @@ const ARC = {
 
 const CONFIG = {
   USDC:   '0x3600000000000000000000000000000000000000',
-  ROUTER: '0xEA0129203FBB99ebEea3f78B2d05b924f17FB556', // AchSwap V3 Router
-  QUOTER: '0x659Da32F3F10566bDB6B55Ad84c182f1D00Ba058', // AchSwap V3 QuoterV2
+  ROUTER: '0xEA0129203FBB99ebEea3f78B2d05b924f17FB556',
+  QUOTER: '0x659Da32F3F10566bDB6B55Ad84c182f1D00Ba058',
   FEES: [100, 500, 3000, 10000],
   MIN_VALUE_USDC: 0.05,
   MAX_VALUE_USDC: 5,
   MAX_PER_RUN: 10,
-  SLIPPAGE_BPS: 300n, // 3%
+  SLIPPAGE_BPS: 300n,
   DEADLINE_SEC: 900,
   GAS_UNITS_BATCH: 400000n,
   GAS_UNITS_APPROVE: 60000n,
@@ -81,7 +81,7 @@ const ROUTER_ABI = [
 let provider, signer, account, quoter, gasPrice = 0n;
 let items = [];
 const $ = id => document.getElementById(id);
-const log = msg => { $('log').textContent += msg + '\n'; console.log(msg); };
+const log = msg => { $('log').textContent += msg + '\n'; };
 const usdc = x => Number(ethers.formatUnits(x, 6)).toFixed(4);
 
 // ===== CONEXÃO =====
@@ -115,38 +115,64 @@ async function connect() {
   }
 }
 
-// ===== LEITURA DA CARTEIRA VIA RPC =====
+// ===== LEITURA AUTOMÁTICA =====
 async function fetchTokens() {
-  // Tokens conhecidos na Arc (adicione mais se quiser)
-  const knownTokens = [
+  const address = account.toLowerCase();
+  const url = `https://explorer.arc.io/api/v2/addresses/${address}/token-balances`;
+
+  try {
+    log('Buscando tokens na API do explorer...');
+    const r = await fetch(url);
+    
+    if (!r.ok) throw new Error('API respondeu ' + r.status);
+
+    const data = await r.json();
+    
+    const tokens = data
+      .filter(x => x.token && x.value !== '0' && x.token.type === 'ERC-20')
+      .map(x => ({
+        address: x.token.address_hash || x.token.address,
+        symbol: x.token.symbol || '???',
+        name: x.token.name || '',
+        decimals: Number(x.token.decimals || 18),
+        logo: x.token.icon_url || null,
+        raw: BigInt(x.value),
+        exchangeRate: x.token.exchange_rate ? Number(x.token.exchange_rate) : null,
+      }))
+      .filter(t => t.address.toLowerCase() !== CONFIG.USDC.toLowerCase());
+
+    log('Encontrados ' + tokens.length + ' tokens');
+    return tokens;
+
+  } catch (e) {
+    log('Falha na API: ' + e.message);
+    log('Usando fallback de tokens conhecidos...');
+    return await fetchKnownTokens();
+  }
+}
+
+// Fallback
+async function fetchKnownTokens() {
+  const known = [
     {
-      address: '0x171A4217b86A807A64eB94757Db6849fb4bDbAA0', // cirBTC
+      address: '0x171A4217b86A807A64eB94757Db6849fb4bDbAA0',
       symbol: 'cirBTC',
       name: 'Circle Wrapped Bitcoin',
       decimals: 8,
       logo: 'https://assets.coingecko.com/coins/images/102172745/standard/cirbtc.jpg',
-      exchangeRate: 82000, // preço aproximado em USD (atualize se quiser)
+      exchangeRate: 82000,
     },
-    // Exemplo de outros tokens que você pode adicionar:
-    // { address: '0x...', symbol: 'EURC', name: 'Euro Coin', decimals: 6, exchangeRate: 1.08 },
   ];
 
   const results = [];
-
-  for (const t of knownTokens) {
+  for (const t of known) {
     try {
       const contract = new ethers.Contract(t.address, ERC20_ABI, provider);
       const bal = await contract.balanceOf(account);
       if (bal > 0n) {
-        results.push({
-          ...t,
-          raw: bal,
-        });
-        log(`${t.symbol}: saldo encontrado = ${ethers.formatUnits(bal, t.decimals)}`);
+        results.push({ ...t, raw: bal });
       }
-    } catch (e) {
-      log(`Erro ao ler ${t.symbol}: ${e.message}`);
-    }
+    } catch (e) {}
   }
   return results;
 }
@@ -157,19 +183,13 @@ async function quoteBest(tokenIn, amountIn, symbol) {
   for (const fee of CONFIG.FEES) {
     try {
       const r = await quoter.quoteExactInputSingle.staticCall({
-        tokenIn,
-        tokenOut: CONFIG.USDC,
-        amountIn,
-        fee,
-        sqrtPriceLimitX96: 0,
+        tokenIn, tokenOut: CONFIG.USDC, amountIn, fee, sqrtPriceLimitX96: 0,
       });
       const out = r[0];
-      log(`${symbol} fee ${fee}: ${usdc(out)} USDC`);
-      if (out > 0n && (!best || out > best.out)) {
-        best = { out, fee };
-      }
+      log(symbol + ' fee ' + fee + ': ' + usdc(out) + ' USDC');
+      if (out > 0n && (!best || out > best.out)) best = { out, fee };
     } catch (e) {
-      log(`${symbol} fee ${fee}: sem pool`);
+      log(symbol + ' fee ' + fee + ': sem pool');
     }
   }
   return best;
@@ -196,23 +216,27 @@ async function scan() {
         estimatedUSDC: 0 
       };
 
-      // Calcula valor usando o exchangeRate
-      const amount = Number(ethers.formatUnits(t.raw, t.decimals));
-      row.estimatedUSDC = amount * (t.exchangeRate || 0);
-      log(`${t.symbol}: valor estimado = \[ {row.estimatedUSDC.toFixed(4)}`);
+      // Valor pela API (exchange_rate)
+      if (t.exchangeRate && t.exchangeRate > 0) {
+        const amount = Number(ethers.formatUnits(t.raw, t.decimals));
+        row.estimatedUSDC = amount * t.exchangeRate;
+      }
 
-      // Tenta cotar no Quoter para pegar o fee tier real
+      // Tenta cotar no Quoter
       const best = await quoteBest(t.address, t.raw, t.symbol);
       if (best) {
         row.out = best.out;
         row.fee = best.fee;
+        if (!row.estimatedUSDC) {
+          row.estimatedUSDC = Number(ethers.formatUnits(best.out, 6));
+        }
       }
 
-      // Decide elegibilidade
+      // Elegibilidade
       if (row.estimatedUSDC < CONFIG.MIN_VALUE_USDC) {
-        row.reason = `Valor abaixo de ${CONFIG.MIN_VALUE_USDC} USDC`;
+        row.reason = 'Valor abaixo de 0,05 USDC';
       } else if (row.estimatedUSDC > CONFIG.MAX_VALUE_USDC) {
-        row.reason = `Valor acima de ${CONFIG.MAX_VALUE_USDC} USDC`;
+        row.reason = 'Valor acima de 5 USDC';
       } else if (!best) {
         row.reason = 'Sem pool / liquidez insuficiente';
       }
@@ -220,7 +244,7 @@ async function scan() {
       items.push(row);
     }
   } catch (e) {
-    log('Erro ao ler carteira: ' + (e.shortMessage || e.message));
+    log('Erro: ' + (e.shortMessage || e.message));
   }
   render();
 }
@@ -238,7 +262,7 @@ function render() {
   }
 
   const elig = items.filter(i => !i.reason).length;
-  $('summary').textContent = `Tokens: ${items.length} · Elegíveis: ${elig} · Não elegíveis: ${items.length - elig}`;
+  $('summary').textContent = 'Tokens: ' + items.length + ' · Elegíveis: ' + elig + ' · Não elegíveis: ' + (items.length - elig);
 
   for (const it of items) {
     const div = document.createElement('div');
@@ -249,25 +273,25 @@ function render() {
     if (it.logo) {
       const img = document.createElement('img');
       img.src = it.logo;
-      img.onerror = () => { logo.textContent = it.symbol[0]; };
+      img.onerror = () => { logo.textContent = it.symbol[0] || '?'; };
       logo.append(img);
     } else {
-      logo.textContent = it.symbol[0];
+      logo.textContent = it.symbol[0] || '?';
     }
 
     const info = document.createElement('div');
     info.className = 'info';
 
     const name = document.createElement('b');
-    name.textContent = `${it.symbol} · ${it.name}`;
+    name.textContent = it.symbol + (it.name ? ' · ' + it.name : '');
 
     const saldo = document.createElement('div');
     saldo.className = 'line';
-    saldo.textContent = `Saldo: ${ethers.formatUnits(it.raw, it.decimals)} ${it.symbol}`;
+    saldo.textContent = 'Saldo: ' + ethers.formatUnits(it.raw, it.decimals) + ' ' + it.symbol;
 
     const valor = document.createElement('div');
     valor.className = 'line';
-    valor.textContent = `Valor estimado: \]{it.estimatedUSDC.toFixed(4)}` + (it.fee ? ` · fee ${it.fee/10000}%` : '');
+    valor.textContent = 'Valor estimado: $' + it.estimatedUSDC.toFixed(4) + (it.fee ? ' · fee ' + (it.fee/10000) + '%' : '');
 
     info.append(name, saldo, valor);
 
@@ -321,15 +345,13 @@ async function executeBatch() {
   $('go').disabled = true;
   
   try {
-    // Aprovações
     for (const t of sel) {
       const token = new ethers.Contract(t.address, ERC20_ABI, signer);
       const allowance = await token.allowance(account, CONFIG.ROUTER);
       if (allowance < t.raw) {
-        log(`Aprovando ${t.symbol}...`);
+        log('Aprovando ' + t.symbol + '...');
         const txA = await token.approve(CONFIG.ROUTER, t.raw);
         await txA.wait();
-        log(`${t.symbol} aprovado`);
       }
     }
 
@@ -354,9 +376,9 @@ async function executeBatch() {
     });
 
     const router = new ethers.Contract(CONFIG.ROUTER, ROUTER_ABI, signer);
-    log(`Enviando lote com ${calls.length} troca(s)...`);
+    log('Enviando lote com ' + calls.length + ' troca(s)...');
     const tx = await router.multicall(calls);
-    log(`Transação enviada: ${tx.hash}`);
+    log('Transação enviada: ' + tx.hash);
     await tx.wait();
     log('Concluído com sucesso!');
     await scan();
