@@ -1,1516 +1,284 @@
-<!DOCTYPE html>
-<html lang="en">
+<!doctype html>
+<html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title id="pageTitle">Dust Zero - Arc Network</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.13.2/ethers.umd.min.js"></script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --bg-color: #05070a;
-            --header-bg: rgba(5, 7, 10, 0.88);
-            --card-bg: #0b0f17;
-            --summary-bg: #070a10;
-            --summary-card-bg: linear-gradient(145deg, #0b0f17, #070a10);
-            --summary-grid-bg: rgba(5, 7, 10, 0.4);
-            --border-color: #151c2c;
-            --border-focus: #3b82f6;
-            --text-main: #D6DEE9;
-            --text-secondary: #858FA8;
-            --text-muted: #6B7794;
-            --accent-blue: #3b82f6;
-            --accent-blue-hover: #2563eb;
-            --accent-cyan: #49BDEB;
-            --success-color: #10b981;
-            --warning-color: #f59e0b;
-            --danger-color: #ef4444;
-            --shadow-card: 0 16px 40px -12px rgba(0, 0, 0, 0.7);
-            --sidebar-bg: #05070a;
-            --token-item-bg: #0f1420;
-            --token-icon-bg: #151c2c;
-            --dropdown-bg: #0b0f17;
-            --notice-bg: rgba(73, 189, 235, 0.02);
-            --notice-border: rgba(73, 189, 235, 0.1);
-            --menu-section-bg: #0b0f17;
-            --connect-connected-bg: #0b111a;
-            --connect-connected-border: #1a263d;
-            --connect-connected-text: #93c5fd;
-        }
-        [data-theme="light"] {
-            --bg-color: #F3F6FA; --header-bg: rgba(243, 246, 250, 0.88);
-            --card-bg: #FFFFFF; --summary-bg: #F7F9FC;
-            --summary-card-bg: linear-gradient(145deg, #FFFFFF, #F7F9FC);
-            --summary-grid-bg: rgba(247, 249, 252, 0.6);
-            --border-color: #D5DEE9; --border-focus: #0789B8;
-            --text-main: #172235; --text-secondary: #526176;
-            --text-muted: #858FA8; --accent-blue: #0789B8;
-            --accent-blue-hover: #067298; --accent-cyan: #0789B8;
-            --success-color: #07875B; --warning-color: #A96308;
-            --danger-color: #dc2626;
-            --shadow-card: 0 10px 30px -10px rgba(23, 34, 53, 0.06);
-            --sidebar-bg: #F3F6FA; --token-item-bg: #F7F9FC;
-            --token-icon-bg: #E3E9F2; --dropdown-bg: #FFFFFF;
-            --notice-bg: rgba(7, 137, 184, 0.03);
-            --notice-border: rgba(7, 137, 184, 0.12);
-            --menu-section-bg: #FFFFFF;
-            --connect-connected-bg: #E6F4EA;
-            --connect-connected-border: #A6E1BE;
-            --connect-connected-text: #07875B;
-        }
-        * { box-sizing: border-box; margin: 0; padding: 0;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease; }
-        body { background-color: var(--bg-color); color: var(--text-main);
-            display: flex; flex-direction: column; align-items: center;
-            padding-top: 95px; min-height: 100vh; overflow-x: hidden; }
-        header { position: fixed; top: 0; left: 0; width: 100%; height: 75px;
-            background-color: var(--header-bg); backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px); border-bottom: 1px solid var(--border-color);
-            display: flex; justify-content: space-between; align-items: center;
-            padding: 0 24px; z-index: 1000; }
-        .logo-area { display: flex; align-items: center; gap: 12px; }
-        .app-logo { width: 36px; height: 36px; border-radius: 50%; object-fit: cover;
-            border: 1px solid var(--border-color); background-color: var(--card-bg); flex-shrink: 0; }
-        h1 { font-size: 1.2rem; font-weight: 600; color: var(--text-main);
-            letter-spacing: -0.3px; line-height: 1.2; }
-        .brand-dust { color: var(--text-main); font-weight: 600; }
-        .brand-zero { color: var(--accent-cyan); font-weight: 700; }
-        .header-right { display: flex; align-items: center; gap: 10px; }
-        .menu-btn { background-color: var(--card-bg); color: var(--text-main);
-            border: 1px solid var(--border-color); width: 38px; height: 38px;
-            border-radius: 10px; display: flex; flex-direction: column;
-            align-items: center; justify-content: center; gap: 4px;
-            cursor: pointer; transition: all 0.25s ease; }
-        .menu-btn:hover { border-color: var(--accent-blue); }
-        .menu-line { width: 15px; height: 2px; background-color: var(--text-main); border-radius: 2px; }
-        .dz-banner-card { position: relative; width: 100%; max-width: 1080px;
-            margin: 0 auto 20px auto; padding: 26px 34px 20px;
-            border: 1px solid rgba(140, 190, 230, 0.18); border-radius: 18px;
-            background: radial-gradient(ellipse at 80% 20%, rgba(104,155,194,.10), transparent 55%),
-                radial-gradient(ellipse at 15% 80%, rgba(42,100,148,.08), transparent 55%),
-                linear-gradient(160deg, #0a1119 0%, #070c12 100%);
-            box-shadow: 0 0 0 1px rgba(120, 190, 240, 0.04) inset,
-                0 20px 60px rgba(0, 0, 0, 0.5), 0 0 100px rgba(60, 140, 200, 0.05);
-            overflow: hidden; animation: dzCardIn 1s cubic-bezier(.2,.8,.2,1) both;
-            font-family: 'Inter', system-ui, -apple-system, sans-serif; }
-        @keyframes dzCardIn { from { opacity: 0; transform: translateY(18px) scale(0.99); }
-            to { opacity: 1; transform: translateY(0) scale(1); } }
-        .dz-banner-text { text-align: center; margin-bottom: 20px; }
-        .dz-banner-title { margin: 0 0 8px; font-size: clamp(20px, 2.6vw, 30px);
-            line-height: 1.15; font-weight: 600; letter-spacing: -0.03em;
-            color: #ffffff; text-shadow: 0 0 24px rgba(120, 200, 255, 0.15); }
-        .dz-banner-subtitle { max-width: 640px; margin: 0 auto;
-            font-size: clamp(11.5px, 1.15vw, 13.5px); line-height: 1.5;
-            font-weight: 400; color: #b9cbdc; letter-spacing: 0.005em; }
-        .dz-banner-divider { height: 1px; width: 100%; margin: 0 0 16px;
-            background: linear-gradient(90deg, transparent 0%,
-                rgba(140, 200, 240, 0.35) 20%, rgba(160, 220, 255, 0.55) 50%,
-                rgba(140, 200, 240, 0.35) 80%, transparent 100%); }
-        .dz-banner-art { display: block; width: 100%; height: auto;
-            max-height: 220px; overflow: visible; }
-        .dz-flow { stroke-dasharray: 8 14; animation: dzFlow 2.6s linear infinite; }
-        @keyframes dzFlow { to { stroke-dashoffset: -88; } }
-        .dz-pulse { animation: dzPulse 3.4s ease-in-out infinite;
-            transform-origin: center; transform-box: fill-box; }
-        @keyframes dzPulse { 0%, 100% { opacity: 0.45; transform: scale(1); }
-            50% { opacity: 0.08; transform: scale(1.07); } }
-        .dz-spin-slow { animation: dzSpin 18s linear infinite;
-            transform-origin: center; transform-box: fill-box; }
-        @keyframes dzSpin { to { transform: rotate(360deg); } }
-        .sidebar-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background-color: rgba(0, 0, 0, 0.65); backdrop-filter: blur(6px);
-            z-index: 2000; opacity: 0; visibility: hidden; transition: all 0.3s ease; }
-        .sidebar-overlay.active { opacity: 1; visibility: visible; }
-        .sidebar { position: fixed; top: 0; right: -360px; width: 330px; height: 100%;
-            background-color: var(--sidebar-bg); border-left: 1px solid var(--border-color);
-            box-shadow: -15px 0 40px rgba(0, 0, 0, 0.4); z-index: 2001;
-            transition: right 0.35s cubic-bezier(0.16, 1, 0.3, 1);
-            display: flex; flex-direction: column; padding: 20px 16px; overflow-y: auto; }
-        .sidebar.active { right: 0; }
-        .sidebar-header { display: flex; justify-content: space-between; align-items: center;
-            margin-bottom: 18px; padding-bottom: 8px; border-bottom: 1px solid var(--border-color); }
-        .sidebar-title { font-size: 1.15rem; font-weight: 600; color: var(--text-main); }
-        .close-sidebar { background: none; border: none; color: var(--text-secondary);
-            font-size: 1.4rem; cursor: pointer; }
-        .menu-section-title { font-size: 0.62rem; text-transform: uppercase;
-            letter-spacing: 1px; color: var(--text-muted); font-weight: 600;
-            margin-bottom: 8px; margin-top: 14px; }
-        .menu-card { background-color: var(--menu-section-bg);
-            border: 1px solid var(--border-color); border-radius: 14px;
-            padding: 12px 14px; margin-bottom: 10px;
-            display: flex; flex-direction: column; gap: 10px; }
-        .menu-item-row { display: flex; align-items: center; justify-content: space-between; }
-        .menu-item-left { display: flex; align-items: center; gap: 10px; }
-        .menu-icon-box { width: 32px; height: 32px; border-radius: 8px;
-            background: rgba(7, 137, 184, 0.08); border: 1px solid rgba(7, 137, 184, 0.15);
-            color: var(--accent-cyan); display: flex; align-items: center;
-            justify-content: center; flex-shrink: 0; }
-        .menu-icon-box svg { width: 16px; height: 16px; fill: none; stroke: currentColor;
-            stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
-        .menu-texts { display: flex; flex-direction: column; gap: 1px; }
-        .menu-label { font-size: 0.82rem; font-weight: 500; color: var(--text-main); }
-        .menu-desc { font-size: 0.68rem; color: var(--text-secondary); font-weight: 400; }
-        .custom-select-wrapper { position: relative; user-select: none; width: 100%; }
-        .custom-select-trigger { background-color: var(--summary-bg);
-            color: var(--text-main); border: 1px solid var(--border-color);
-            padding: 10px 12px; border-radius: 10px; font-size: 0.8rem;
-            font-weight: 500; display: flex; justify-content: space-between;
-            align-items: center; cursor: pointer; }
-        .custom-select-trigger:hover { border-color: var(--accent-blue); }
-        .custom-select-trigger::after { content: "▼"; font-size: 0.55rem; color: var(--text-secondary); }
-        .custom-select-wrapper.open .custom-options { display: block; }
-        .custom-options { position: absolute; top: calc(100% + 4px); left: 0; right: 0;
-            background-color: var(--dropdown-bg); border: 1px solid var(--border-color);
-            border-radius: 10px; box-shadow: 0 10px 25px rgba(23, 34, 53, 0.1);
-            overflow: hidden; display: none; z-index: 3000; }
-        .custom-option { padding: 10px 12px; font-size: 0.8rem; font-weight: 500;
-            color: var(--text-main); cursor: pointer; }
-        .custom-option:hover { background-color: rgba(7, 137, 184, 0.1); color: var(--accent-cyan); }
-        .custom-option.selected { color: var(--accent-cyan); background-color: rgba(7, 137, 184, 0.06); font-weight: 600; }
-        .currency-segmented { display: grid; grid-template-columns: 1fr 1fr; gap: 4px;
-            background: var(--summary-bg); border: 1px solid var(--border-color);
-            padding: 3px; border-radius: 10px; }
-        .currency-seg-btn { background: transparent; border: none;
-            color: var(--text-secondary); padding: 8px; border-radius: 7px;
-            font-size: 0.78rem; font-weight: 500; cursor: pointer;
-            transition: all 0.2s; display: flex; align-items: center;
-            justify-content: center; gap: 5px; }
-        .currency-seg-btn.active { background: var(--accent-blue); color: white;
-            font-weight: 600; box-shadow: 0 2px 8px rgba(7, 137, 184, 0.3); }
-        .switch { position: relative; display: inline-block; width: 40px;
-            height: 22px; flex-shrink: 0; }
-        .switch input { opacity: 0; width: 0; height: 0; }
-        .slider { position: absolute; cursor: pointer; top: 0; left: 0;
-            right: 0; bottom: 0; background-color: var(--border-color);
-            transition: .3s; border-radius: 22px; }
-        .slider:before { position: absolute; content: ""; height: 16px;
-            width: 16px; left: 3px; bottom: 3px; background-color: white;
-            transition: .3s; border-radius: 50%; }
-        input:checked + .slider { background-color: var(--accent-blue); }
-        input:checked + .slider:before { transform: translateX(18px); }
-        .disconnect-card-btn { background: rgba(220, 38, 38, 0.04);
-            border: 1px solid rgba(220, 38, 38, 0.2); color: var(--danger-color);
-            padding: 12px 14px; border-radius: 12px; font-size: 0.82rem;
-            font-weight: 500; cursor: pointer; display: flex; align-items: center;
-            justify-content: space-between; transition: all 0.2s ease; width: 100%; }
-        .disconnect-card-btn:hover { background: rgba(220, 38, 38, 0.08);
-            border-color: rgba(220, 38, 38, 0.35); }
-        .disconnect-left { display: flex; align-items: center; gap: 10px; }
-        .wallet-modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background-color: rgba(0, 0, 0, 0.7); backdrop-filter: blur(6px);
-            z-index: 3000; opacity: 0; visibility: hidden; transition: all 0.3s ease; }
-        .wallet-modal-overlay.active { opacity: 1; visibility: visible; }
-        .wallet-bottom-sheet { position: fixed; bottom: -100%; left: 0; width: 100%;
-            background-color: var(--card-bg); border-top: 1px solid var(--border-color);
-            border-top-left-radius: 24px; border-top-right-radius: 24px;
-            box-shadow: 0 -20px 40px rgba(0,0,0,0.5); z-index: 3001;
-            transition: bottom 0.35s cubic-bezier(0.16, 1, 0.3, 1);
-            display: flex; flex-direction: column; padding: 24px 20px 36px 20px;
-            max-width: 580px; margin: 0 auto; right: 0; }
-        .wallet-bottom-sheet.active { bottom: 0; }
-        .sheet-header { display: flex; justify-content: space-between;
-            align-items: center; margin-bottom: 20px; }
-        .sheet-title { font-size: 1.1rem; font-weight: 600; color: var(--text-main); }
-        .sheet-close { background: none; border: none; color: var(--text-secondary);
-            font-size: 1.4rem; cursor: pointer; }
-        .wallet-options-grid { display: flex; flex-direction: column; gap: 10px; }
-        .wallet-option-item { background-color: var(--summary-bg);
-            border: 1px solid var(--border-color); border-radius: 14px;
-            padding: 14px 16px; display: flex; align-items: center;
-            justify-content: space-between; cursor: pointer; transition: all 0.2s ease; }
-        .wallet-option-item:hover { border-color: var(--accent-blue);
-            background-color: rgba(7, 137, 184, 0.04); }
-        .wallet-opt-left { display: flex; align-items: center; gap: 12px; }
-        .wallet-opt-icon { width: 36px; height: 36px; border-radius: 10px;
-            background: var(--token-icon-bg); border: 1px solid var(--border-color);
-            display: flex; align-items: center; justify-content: center;
-            font-weight: 700; font-size: 0.85rem; color: var(--accent-cyan); }
-        .wallet-opt-name { font-size: 0.95rem; font-weight: 600; color: var(--text-main); }
-        .wallet-opt-desc { font-size: 0.72rem; color: var(--text-secondary); }
-        .connect-btn { background-color: var(--card-bg); color: var(--text-main);
-            border: 1px solid var(--border-color); padding: 0 14px;
-            border-radius: 10px; font-size: 0.8rem; font-weight: 500;
-            cursor: pointer; height: 38px; display: flex; align-items: center;
-            justify-content: center; gap: 7px; transition: all 0.25s ease; }
-        .connect-btn:hover { border-color: var(--border-focus); }
-        .connect-btn.connected { background-color: var(--connect-connected-bg);
-            border-color: var(--connect-connected-border);
-            color: var(--connect-connected-text); }
-        .connect-dot { width: 6px; height: 6px; border-radius: 50%;
-            background-color: var(--accent-cyan); display: inline-block;
-            box-shadow: 0 0 6px var(--accent-cyan); }
-        .container { width: 100%; max-width: 480px;
-            padding: 0 20px 40px 20px; flex: 1; }
-        @media (min-width: 768px) { .container { max-width: 620px; }
-            header { padding: 0 40px; } }
-        @media (min-width: 1024px) { .container { max-width: 1040px;
-            display: grid; grid-template-columns: 1.2fr 1fr; gap: 20px;
-            align-items: start; }
-            .dz-banner-card { grid-column: span 2; }
-            .col-left { display: flex; flex-direction: column; gap: 16px; }
-            .col-right { display: flex; flex-direction: column; gap: 16px;
-                position: sticky; top: 110px; }
-            header { padding: 0 60px; } }
-        .total-wealth-card { background: var(--card-bg);
-            border: 1px solid var(--border-color); border-radius: 18px;
-            padding: 20px; margin-bottom: 14px; box-shadow: var(--shadow-card);
-            display: flex; flex-direction: column; gap: 4px; position: relative; }
-        .wealth-header-row { display: flex; justify-content: space-between;
-            align-items: center; }
-        .wealth-title { font-size: 0.75rem; text-transform: uppercase;
-            letter-spacing: 0.8px; color: var(--text-secondary); font-weight: 500; }
-        .network-indicator { display: flex; align-items: center; gap: 6px; }
-        .network-name-label { font-size: 0.73rem; font-weight: 500;
-            color: var(--text-secondary); letter-spacing: 0.3px; }
-        .status-dot { width: 8px; height: 8px; border-radius: 50%;
-            background-color: var(--text-secondary); opacity: 0.3;
-            transition: all 0.3s ease; }
-        .status-dot.active { background-color: var(--accent-cyan);
-            opacity: 1; box-shadow: 0 0 10px var(--accent-cyan); }
-        .wealth-amount { font-size: 1.8rem; font-weight: 600;
-            color: var(--text-main); letter-spacing: -0.5px; margin: 2px 0; }
-        .wealth-subtitle { font-size: 0.78rem; color: var(--text-secondary); font-weight: 400; }
-        .analytics-grid { display: grid; grid-template-columns: repeat(3, 1fr);
-            gap: 8px; margin-bottom: 14px; }
-        .analytic-card { background: var(--card-bg);
-            border: 1px solid var(--border-color); border-radius: 12px;
-            padding: 10px 8px; display: flex; flex-direction: column; gap: 6px; }
-        .analytic-top { display: flex; align-items: center; justify-content: space-between; }
-        .analytic-icon { width: 24px; height: 24px; border-radius: 50%;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 0.75rem; font-weight: 500; }
-        .icon-blue { background: rgba(7, 137, 184, 0.12); color: var(--accent-cyan);
-            border: 1px solid rgba(7, 137, 184, 0.25); }
-        .icon-green { background: rgba(7, 135, 91, 0.12); color: var(--success-color);
-            border: 1px solid rgba(7, 135, 91, 0.25); }
-        .icon-yellow { background: rgba(169, 99, 8, 0.12); color: var(--warning-color);
-            border: 1px solid rgba(169, 99, 8, 0.25); }
-        .analytic-number { font-size: 1.05rem; font-weight: 600; color: var(--text-main); }
-        .analytic-label { font-size: 0.55rem; text-transform: uppercase;
-            letter-spacing: 0.4px; color: var(--text-secondary);
-            font-weight: 500; line-height: 1.2; }
-        .slippage-notice-box { background-color: var(--notice-bg);
-            border: 1px solid var(--notice-border); border-radius: 12px;
-            padding: 10px 14px; margin-bottom: 16px;
-            display: flex; align-items: center; gap: 10px; }
-        .notice-icon-circle { width: 20px; height: 20px; border-radius: 50%;
-            background: rgba(7, 137, 184, 0.15); color: var(--accent-cyan);
-            font-size: 0.65rem; font-weight: 600;
-            display: flex; align-items: center; justify-content: center;
-            flex-shrink: 0; border: 1px solid rgba(7, 137, 184, 0.3); }
-        .slippage-notice-text { font-size: 0.75rem; color: var(--text-secondary);
-            font-weight: 400; line-height: 1.35; }
-        .slippage-notice-text strong { color: var(--text-main); font-weight: 500; }
-        .card { background-color: var(--card-bg);
-            border: 1px solid var(--border-color); border-radius: 18px;
-            padding: 20px; margin-bottom: 16px; box-shadow: var(--shadow-card); }
-        .list-header { display: flex; justify-content: space-between;
-            align-items: center; margin-bottom: 14px; padding-bottom: 12px;
-            border-bottom: 1px solid var(--border-color); }
-        .list-title { font-size: 0.95rem; font-weight: 600; color: var(--text-main); }
-        .select-all-container { display: flex; align-items: center;
-            gap: 8px; cursor: pointer; user-select: none; }
-        .select-all-label-text { font-size: 0.76rem; font-weight: 500;
-            color: var(--text-secondary); }
-        .custom-switch-wrapper { position: relative; display: inline-block;
-            width: 44px; height: 24px; flex-shrink: 0; }
-        .custom-switch-wrapper input { opacity: 0; width: 0; height: 0; }
-        .custom-switch-slider { position: absolute; cursor: pointer;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background-color: var(--token-icon-bg);
-            border: 1px solid var(--border-color); transition: .3s;
-            border-radius: 24px; }
-        .custom-switch-slider:before { position: absolute; content: "";
-            height: 18px; width: 18px; left: 2px; bottom: 2px;
-            background-color: var(--text-secondary); transition: .3s;
-            border-radius: 50%; }
-        .custom-switch-wrapper input:checked + .custom-switch-slider {
-            background-color: rgba(7, 137, 184, 0.2);
-            border-color: rgba(7, 137, 184, 0.5); }
-        .custom-switch-wrapper input:checked + .custom-switch-slider:before {
-            transform: translateX(20px); background-color: var(--accent-cyan);
-            box-shadow: 0 0 8px rgba(7, 137, 184, 0.6); }
-        .token-list { display: flex; flex-direction: column; gap: 10px;
-            min-height: 240px; max-height: 340px; overflow-y: auto;
-            padding-right: 4px; }
-        .scanner-state { display: flex; flex-direction: column;
-            align-items: center; justify-content: center;
-            padding: 20px 0; gap: 14px; color: var(--text-secondary);
-            text-align: center; }
-        .wallet-art-container { width: 130px; height: 130px;
-            border-radius: 50%; background: rgba(255, 255, 255, 0.015);
-            border: 1px solid var(--border-color);
-            display: flex; align-items: center; justify-content: center;
-            position: relative; box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.2); }
-        .wallet-art-container::before { content: ""; position: absolute;
-            inset: 8px; border-radius: 50%;
-            border: 1px dashed var(--border-color); opacity: 0.6;
-            animation: spinWalletRing 25s linear infinite; }
-        @keyframes spinWalletRing { to { transform: rotate(360deg); } }
-        .card-summary-pro { background: var(--summary-card-bg);
-            border: 1px solid var(--border-color); border-radius: 20px;
-            padding: 20px; margin-bottom: 16px; box-shadow: var(--shadow-card);
-            display: none; animation: slideDown 0.3s ease; }
-        .card-summary-pro.active { display: flex; flex-direction: column; gap: 16px; }
-        @keyframes slideDown { from { opacity: 0; transform: translateY(-8px); }
-            to { opacity: 1; transform: translateY(0); } }
-        .summary-pro-header { display: flex; align-items: center;
-            justify-content: space-between; padding-bottom: 12px;
-            border-bottom: 1px solid var(--border-color); }
-        .summary-pro-title-area { display: flex; align-items: center;
-            gap: 10px; font-size: 1.05rem; font-weight: 600;
-            color: var(--text-main); }
-        .summary-pro-icon { width: 30px; height: 30px; border-radius: 8px;
-            background: rgba(7, 137, 184, 0.08);
-            border: 1px solid rgba(7, 137, 184, 0.2);
-            color: var(--accent-cyan); display: flex;
-            align-items: center; justify-content: center; }
-        .summary-pro-icon svg { width: 15px; height: 15px;
-            fill: none; stroke: currentColor; stroke-width: 2; }
-        .summary-currency-tag { font-size: 0.78rem; font-weight: 600;
-            color: var(--accent-cyan); background: rgba(7, 137, 184, 0.08);
-            border: 1px solid rgba(7, 137, 184, 0.2);
-            padding: 5px 12px; border-radius: 8px; letter-spacing: 0.5px; }
-        .summary-pro-grid { display: grid; grid-template-columns: 1fr 1fr;
-            gap: 12px; background: var(--summary-grid-bg);
-            border: 1px solid var(--border-color);
-            padding: 14px; border-radius: 14px; }
-        .summary-col { display: flex; flex-direction: column; gap: 4px; }
-        .summary-col.right { text-align: right;
-            border-left: 1px solid var(--border-color); padding-left: 12px; }
-        .summary-label-sm { font-size: 0.72rem; color: var(--text-secondary);
-            font-weight: 500; text-transform: uppercase; letter-spacing: 0.4px; }
-        .summary-val-main { font-size: 1.35rem; font-weight: 600;
-            color: var(--text-main); letter-spacing: -0.3px; }
-        .summary-val-main.green { color: var(--success-color); }
-        .summary-fees-section { background: var(--summary-bg);
-            border: 1px solid var(--border-color); border-radius: 12px;
-            padding: 12px 14px; display: flex; flex-direction: column; gap: 10px; }
-        .fees-toggle-row { display: flex; align-items: center;
-            justify-content: space-between; cursor: pointer; user-select: none; }
-        .fees-title-left { font-size: 0.78rem; color: var(--text-secondary);
-            font-weight: 500; }
-        .fees-right-side { display: flex; align-items: center;
-            gap: 6px; font-size: 0.78rem; font-weight: 500;
-            color: var(--text-muted); }
-        .fees-arrow { font-size: 0.6rem; color: var(--text-secondary);
-            transition: transform 0.25s ease; }
-        .fees-toggle-row.open .fees-arrow { transform: rotate(180deg); }
-        .fees-dropdown-content { display: none; flex-direction: column;
-            gap: 8px; padding-top: 8px;
-            border-top: 1px dashed var(--border-color); }
-        .fees-dropdown-content.active { display: flex; }
-        .fee-sub-row { display: flex; justify-content: space-between;
-            align-items: center; font-size: 0.75rem;
-            color: var(--text-secondary); }
-        .fee-sub-row span:last-child { color: var(--text-main); font-weight: 500; }
-        .fees-disclaimer { font-size: 0.65rem; color: var(--text-muted);
-            margin-top: 2px; line-height: 1.3; }
-        .token-item { display: flex; align-items: center;
-            justify-content: space-between; background: var(--token-item-bg);
-            border: 1px solid var(--border-color); padding: 12px 14px;
-            border-radius: 14px; }
-        .token-info { display: flex; align-items: center; gap: 12px; }
-        .token-icon-wrapper { position: relative; width: 36px; height: 36px; }
-        .token-icon { width: 36px; height: 36px; border-radius: 10px;
-            background: var(--token-icon-bg); border: 1px solid var(--border-color);
-            display: flex; align-items: center; justify-content: center;
-            font-weight: 600; font-size: 0.8rem; color: var(--accent-cyan);
-            overflow: hidden; }
-        .token-icon img { width: 100%; height: 100%; object-fit: cover;
-            border-radius: 10px; }
-        .warning-badge-overlay { position: absolute; bottom: -3px; right: -3px;
-            width: 16px; height: 16px; background-color: var(--warning-color);
-            color: #ffffff; font-size: 0.65rem; font-weight: 700;
-            border-radius: 50%; display: flex; align-items: center;
-            justify-content: center; border: 2px solid var(--card-bg);
-            box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
-        .token-name { font-weight: 500; font-size: 0.9rem; color: var(--text-main); }
-        .token-balance { font-size: 0.75rem; color: var(--text-secondary);
-            font-weight: 400; margin-top: 2px; }
-        .token-right { display: flex; align-items: center; gap: 14px; }
-        .token-usd { text-align: right; font-size: 0.9rem;
-            font-weight: 500; color: var(--text-main); }
-        input[type="checkbox"] { appearance: none; -webkit-appearance: none;
-            width: 20px; height: 20px; border: 2px solid var(--border-color);
-            border-radius: 6px; background-color: var(--card-bg);
-            cursor: pointer; position: relative; }
-        input[type="checkbox"]:checked { background-color: var(--accent-blue);
-            border-color: var(--accent-blue); }
-        input[type="checkbox"]:checked::after { content: "✓";
-            position: absolute; color: white; font-size: 12px;
-            font-weight: bold; top: 1px; left: 4px; }
-        input[type="checkbox"]:disabled { opacity: 0.4; cursor: not-allowed;
-            background-color: var(--token-icon-bg); }
-        .action-btn { width: 100%;
-            background: linear-gradient(135deg, #07875B, #056a47);
-            color: white; border: none; padding: 16px; border-radius: 14px;
-            font-size: 1rem; font-weight: 600; cursor: pointer;
-            box-shadow: 0 4px 20px rgba(7, 135, 91, 0.25);
-            display: flex; align-items: center; justify-content: center;
-            gap: 10px; margin-top: 16px; }
-        .action-btn:disabled { background: var(--token-icon-bg);
-            color: var(--text-secondary); border: 1px solid var(--border-color);
-            cursor: not-allowed; box-shadow: none; }
-        .spinner-icon { width: 18px; height: 18px;
-            border: 2px solid rgba(255, 255, 255, 0.3);
-            border-top: 2px solid white; border-radius: 50%;
-            animation: spinBtn 0.8s linear infinite; display: inline-block; }
-        @keyframes spinBtn { 0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); } }
-        .success-check { font-size: 1.1rem; font-weight: bold; color: white; }
-        footer { width: 100%; border-top: 1px solid var(--border-color);
-            padding: 20px 24px; display: flex; justify-content: center;
-            align-items: center; margin-top: auto; }
-        .footer-content { width: 100%; max-width: 1040px;
-            font-size: 0.75rem; color: var(--text-secondary);
-            text-align: left; font-weight: 400; }
-    </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>dustzero</title>
+<style>
+  body { font-family: system-ui, sans-serif; max-width: 720px; margin: 24px auto; padding: 0 16px; background: #0b0b0f; color: #eee; }
+  button { padding: 10px 16px; border-radius: 8px; border: 0; background: #4f7cff; color: #fff; cursor: pointer; font-size: 15px; }
+  button:disabled { opacity: .4; cursor: not-allowed; }
+  .card { background: #16161d; border-radius: 12px; padding: 12px 14px; margin: 8px 0; display: flex; align-items: center; gap: 12px; }
+  .info { flex: 1; }
+  .muted { color: #999; font-size: 13px; }
+  .bad { color: #f0a500; font-size: 13px; }
+  .logo { width: 36px; height: 36px; border-radius: 50%; background: #2a2a36; display: flex; align-items: center; justify-content: center; font-weight: bold; color: #4f7cff; flex-shrink: 0; }
+  #review { background: #16161d; border-radius: 12px; padding: 14px; margin-top: 16px; display: none; }
+  #log { font-size: 13px; color: #aaa; white-space: pre-wrap; word-break: break-all; }
+</style>
 </head>
-<body data-theme="dark">
+<body>
+<h1>dustzero</h1>
+<p class="muted">Converte resíduos de tokens (de 0,05 a 5 USDC) em USDC na Arc mainnet. Até 10 tokens por vez.</p>
 
-    <header>
-        <div class="logo-area">
-            <img src="logo1.png" alt="Dust Zero Logo" class="app-logo">
-            <h1><span class="brand-dust">Dust</span> <span class="brand-zero">Zero</span></h1>
-        </div>
-        <div class="header-right">
-            <button id="connectBtn" class="connect-btn" onclick="openWalletModal()">Connect</button>
-            <button class="menu-btn" onclick="toggleSidebar()">
-                <div class="menu-line"></div><div class="menu-line"></div><div class="menu-line"></div>
-            </button>
-        </div>
-    </header>
+<button id="connect">Conectar carteira</button>
+<p id="status" class="muted"></p>
+<div id="list"></div>
 
-    <!-- BOTTOM SHEET: SELECÇÃO DE CARTEIRA -->
-    <div class="wallet-modal-overlay" id="walletOverlay" onclick="closeWalletModal()"></div>
-    <div class="wallet-bottom-sheet" id="walletBottomSheet">
-        <div class="sheet-header">
-            <span class="sheet-title" id="sheetTitle">Conectar Carteira</span>
-            <button class="sheet-close" onclick="closeWalletModal()">&times;</button>
-        </div>
-        <div class="wallet-options-grid">
-            <div class="wallet-option-item" onclick="connectRealWallet('browser')">
-                <div class="wallet-opt-left">
-                    <div class="wallet-opt-icon">🌐</div>
-                    <div>
-                        <div class="wallet-opt-name">Browser Wallet / Injected</div>
-                        <div class="wallet-opt-desc">MetaMask, Rabby, Phantom nativo</div>
-                    </div>
-                </div>
-                <span style="color: var(--text-secondary);">❯</span>
-            </div>
-            <div class="wallet-option-item" onclick="connectRealWallet('metamask')">
-                <div class="wallet-opt-left">
-                    <div class="wallet-opt-icon" style="color: #f6851b;">🦊</div>
-                    <div>
-                        <div class="wallet-opt-name">MetaMask</div>
-                        <div class="wallet-opt-desc">Conexão direta à extensão ou app</div>
-                    </div>
-                </div>
-                <span style="color: var(--text-secondary);">❯</span>
-            </div>
-            <div class="wallet-option-item" onclick="connectRealWallet('rabby')">
-                <div class="wallet-opt-left">
-                    <div class="wallet-opt-icon" style="color: #836ef9;">🐰</div>
-                    <div>
-                        <div class="wallet-opt-name">Rabby Wallet</div>
-                        <div class="wallet-opt-desc">Proteção avançada DeFi</div>
-                    </div>
-                </div>
-                <span style="color: var(--text-secondary);">❯</span>
-            </div>
-            <div class="wallet-option-item" onclick="connectRealWallet('walletconnect')">
-                <div class="wallet-opt-left">
-                    <div class="wallet-opt-icon" style="color: #3b99fc;">wc</div>
-                    <div>
-                        <div class="wallet-opt-name">WalletConnect</div>
-                        <div class="wallet-opt-desc">Conectar via QR Code / Mobile</div>
-                    </div>
-                </div>
-                <span style="color: var(--text-secondary);">❯</span>
-            </div>
-        </div>
-    </div>
+<div id="review">
+  <p><b>Selecionados:</b> <span id="selCount">0</span></p>
+  <p><b>Você recebe (estimado):</b> <span id="recv">0</span> USDC</p>
+  <p><b>Gas estimado:</b> <span id="gasEst">0</span> USDC</p>
+  <button id="go">Confirmar consolidação</button>
+</div>
 
-    <!-- SIDEBAR -->
-    <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
-    <div class="sidebar" id="sidebar">
-        <div class="sidebar-header">
-            <div class="sidebar-title" id="menuTitle">Menu</div>
-            <button class="close-sidebar" onclick="toggleSidebar()">&times;</button>
-        </div>
-        <div class="menu-section-title" id="prefSectionTitle">Preferences</div>
-        <div class="menu-card">
-            <div class="menu-item-row">
-                <div class="menu-item-left">
-                    <div class="menu-icon-box">
-                        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
-                    </div>
-                    <div class="menu-texts">
-                        <span class="menu-label" id="langLabel">Language</span>
-                        <span class="menu-desc" id="langDesc">Select interface language</span>
-                    </div>
-                </div>
-            </div>
-            <div class="custom-select-wrapper" id="customSelect">
-                <div class="custom-select-trigger" onclick="toggleDropdown(event)">
-                    <span id="selectedLangText">English</span>
-                </div>
-                <div class="custom-options">
-                    <div class="custom-option selected" onclick="setLanguage('en', 'English')">English</div>
-                    <div class="custom-option" onclick="setLanguage('pt', 'Português')">Português</div>
-                    <div class="custom-option" onclick="setLanguage('es', 'Español')">Español</div>
-                </div>
-            </div>
-        </div>
-        <div class="menu-card">
-            <div class="menu-item-row">
-                <div class="menu-item-left">
-                    <div class="menu-icon-box">
-                        <svg viewBox="0 0 24 24"><circle cx="8" cy="8" r="6"/><path d="M18.09 10.37A6 6 0 1 1 10.34 18"/><path d="M7 6h1v4"/><path d="m16 16 2 2 4-4"/></svg>
-                    </div>
-                    <div class="menu-texts">
-                        <span class="menu-label" id="currencyMenuLabel">Conversion Currency</span>
-                        <span class="menu-desc" id="currencyDesc">Choose destination asset</span>
-                    </div>
-                </div>
-            </div>
-            <div class="currency-segmented">
-                <button class="currency-seg-btn active" id="segUsdc" onclick="setCurrency('USDC')">($) USDC</button>
-                <button class="currency-seg-btn" id="segEurc" onclick="setCurrency('EURC')">(€) EURC</button>
-            </div>
-        </div>
-        <div class="menu-card">
-            <div class="menu-item-row">
-                <div class="menu-item-left">
-                    <div class="menu-icon-box" id="themeIconBox">
-                        <svg id="themeSvg" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
-                    </div>
-                    <div class="menu-texts">
-                        <span class="menu-label" id="themeMenuLabel">Appearance</span>
-                        <span class="menu-desc" id="themeDesc">Dark mode active</span>
-                    </div>
-                </div>
-                <label class="switch">
-                    <input type="checkbox" id="themeToggle" onchange="toggleTheme()">
-                    <span class="slider"></span>
-                </label>
-            </div>
-        </div>
-        <div id="walletSection" style="display: none;">
-            <div class="menu-section-title" id="walletSectionTitle">Wallet</div>
-            <div class="menu-card">
-                <div class="menu-item-row">
-                    <div class="menu-item-left">
-                        <div class="menu-icon-box">
-                            <svg viewBox="0 0 24 24"><path d="M20 12V8H6a2 2 0 0 1-2-2c0-1.1.9-2 2-2h12v4"/><path d="M4 6v12a2 2 0 0 0 2 2h14v-4"/><path d="M18 12a2 2 0 0 0 0 4h4v-4Z"/></svg>
-                        </div>
-                        <div class="menu-texts">
-                            <span class="menu-label" id="walletConnectedLabel">Connected Wallet</span>
-                            <span class="menu-desc" style="color: var(--success-color); font-weight: 500;" id="walletAddressText">0x00...00</span>
-                        </div>
-                    </div>
-                    <span style="width: 8px; height: 8px; background-color: var(--success-color); border-radius: 50%; box-shadow: 0 0 8px var(--success-color);"></span>
-                </div>
-            </div>
-            <button class="disconnect-card-btn" onclick="handleMenuDisconnect()">
-                <div class="disconnect-left">
-                    <div class="menu-icon-box" style="background: rgba(220, 38, 38, 0.08); border-color: rgba(220, 38, 38, 0.2); color: var(--danger-color);">
-                        <svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-                    </div>
-                    <span id="disconnectBtnText">Disconnect Wallet</span>
-                </div>
-                <span style="font-size: 0.8rem; color: var(--danger-color);">❯</span>
-            </button>
-        </div>
-    </div>
+<pre id="log"></pre>
 
-    <!-- CONTAINER PRINCIPAL -->
-    <div class="container">
+<script src="https://cdn.jsdelivr.net/npm/ethers@6.13.4/dist/ethers.umd.min.js"></script>
+<script>
+// ===== CONFIGURAÇÃO (endereços confirmados no explorer.arc.io) =====
+const ARC = {
+  chainIdHex: '0x13b2', // 5042
+  name: 'Arc',
+  rpc: 'https://rpc.mainnet.arc.io',
+  explorer: 'https://explorer.arc.io',
+};
 
-        <!-- BANNER SVG -->
-        <div class="dz-banner-card">
-            <div class="dz-banner-text">
-                <h1 id="introTitle" class="dz-banner-title">Smart Asset <span style="color: var(--accent-cyan);">Consolidation</span></h1>
-                <p id="introDesc" class="dz-banner-subtitle">
-                    Connect your wallet to the Arc network to detect and convert small residual balances into stablecoins seamlessly.
-                </p>
-            </div>
-            <div class="dz-banner-divider"></div>
-            <svg class="dz-banner-art" viewBox="0 0 1100 220" role="img" aria-label="Dust Zero">
-                <defs>
-                    <linearGradient id="dzCoinFill" x1="0" y1="0" x2="1" y2="1">
-                        <stop offset="0" stop-color="#f2fbff"/><stop offset=".48" stop-color="#9dbdd8"/><stop offset="1" stop-color="#3a5672"/>
-                    </linearGradient>
-                    <linearGradient id="dzArcFill" x1="0" y1="0" x2="1" y2="1">
-                        <stop offset="0" stop-color="#e6f9ff"/><stop offset="1" stop-color="#74bce8"/>
-                    </linearGradient>
-                    <radialGradient id="dzHalo"><stop offset="0" stop-color="#8adfff" stop-opacity=".32"/><stop offset="1" stop-color="#8adfff" stop-opacity="0"/></radialGradient>
-                    <radialGradient id="dzHaloSoft"><stop offset="0" stop-color="#8adfff" stop-opacity=".18"/><stop offset="1" stop-color="#8adfff" stop-opacity="0"/></radialGradient>
-                    <filter id="dzSoftGlow" x="-80%" y="-80%" width="260%" height="260%">
-                        <feGaussianBlur stdDeviation="5" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
-                    </filter>
-                    <filter id="dzStrongGlow" x="-100%" y="-100%" width="300%" height="300%">
-                        <feGaussianBlur stdDeviation="8" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
-                    </filter>
-                </defs>
-                <ellipse cx="200" cy="110" rx="180" ry="85" fill="url(#dzHaloSoft)"/>
-                <g opacity=".95">
-                    <circle cx="45" cy="75" r="13" fill="url(#dzCoinFill)" stroke="#d6edff" stroke-width="1.6"/>
-                    <text x="45" y="80" text-anchor="middle" fill="#27425a" font-size="14" font-weight="700">A</text>
-                    <circle cx="85" cy="150" r="16" fill="url(#dzCoinFill)" stroke="#d6edff" stroke-width="1.6"/>
-                    <text x="85" y="156" text-anchor="middle" fill="#27425a" font-size="17" font-weight="700">A</text>
-                    <circle cx="145" cy="55" r="9" fill="url(#dzCoinFill)" stroke="#d6edff" stroke-width="1.4"/>
-                    <text x="145" y="59" text-anchor="middle" fill="#27425a" font-size="9" font-weight="700">A</text>
-                    <circle cx="165" cy="170" r="11" fill="url(#dzCoinFill)" stroke="#d6edff" stroke-width="1.5"/>
-                    <text x="165" y="175" text-anchor="middle" fill="#27425a" font-size="11" font-weight="700">A</text>
-                </g>
-                <g fill="none" stroke="#9fc9e8" stroke-width="1.1" opacity=".5">
-                    <path d="M58 75 H160 Q180 75 195 60 L230 28 H285"/>
-                    <path d="M101 150 H170 Q190 150 205 135 L250 90 H290"/>
-                    <path d="M154 55 H170 Q185 55 200 42 L225 30 H290"/>
-                    <path d="M176 170 H185 Q205 170 220 182 L255 205 H290"/>
-                </g>
-                <g fill="none" stroke="#bdeaff" stroke-width="1.5" opacity=".8">
-                    <path d="M245 65 C270 65 278 82 305 96 S345 115 375 115"/>
-                    <path d="M250 175 C275 175 285 155 308 140 S350 122 375 115"/>
-                    <path d="M265 115 C290 115 300 115 330 115 H375"/>
-                </g>
-                <circle cx="410" cy="115" r="52" fill="url(#dzHalo)"/>
-                <circle cx="410" cy="115" r="40" fill="url(#dzHaloSoft)" class="dz-pulse"/>
-                <circle cx="410" cy="115" r="43" fill="none" stroke="#b5e9ff" stroke-opacity=".4" stroke-width="1.1" stroke-dasharray="2 8" class="dz-spin-slow"/>
-                <circle cx="410" cy="115" r="34" fill="#0d1a28" stroke="#a9dfff" stroke-width="1.4" filter="url(#dzSoftGlow)"/>
-                <text x="410" y="124" text-anchor="middle" fill="url(#dzArcFill)" font-size="24" font-weight="700" letter-spacing="1" filter="url(#dzSoftGlow)">DZ</text>
-                <path class="dz-flow" d="M455 115 H565" fill="none" stroke="#bdeaff" stroke-width="1.6" opacity=".9"/>
-                <g opacity=".95">
-                    <circle cx="485" cy="84" r="8" fill="url(#dzCoinFill)" stroke="#d6edff" stroke-width="1.4"/>
-                    <text x="485" y="88" text-anchor="middle" fill="#27425a" font-size="9" font-weight="700">A</text>
-                    <circle cx="498" cy="146" r="7" fill="url(#dzCoinFill)" stroke="#d6edff" stroke-width="1.3"/>
-                    <text x="498" y="150" text-anchor="middle" fill="#27425a" font-size="8" font-weight="700">A</text>
-                </g>
-                <circle cx="625" cy="115" r="65" fill="url(#dzHalo)"/>
-                <circle cx="625" cy="115" r="52" fill="url(#dzHaloSoft)" class="dz-pulse-delay"/>
-                <circle cx="625" cy="115" r="57" fill="none" stroke="#9edcff" stroke-opacity=".35" stroke-dasharray="3 9" stroke-width="1" class="dz-spin-slow"/>
-                <circle cx="625" cy="115" r="48" fill="#0c1724" stroke="#91ccec" stroke-width="1.6" filter="url(#dzSoftGlow)"/>
-                <path d="M610 133 L623 98 Q625 92 628 98 L641 133 L631 133 L625 117 L619 133 Z" fill="url(#dzArcFill)" filter="url(#dzSoftGlow)"/>
-                <path class="dz-flow" d="M690 115 H795" fill="none" stroke="#bdeaff" stroke-width="1.6" opacity=".9"/>
-                <g>
-                    <circle cx="722" cy="92" r="9" fill="url(#dzCoinFill)" stroke="#d6edff" stroke-width="1.4"/>
-                    <text x="722" y="96" text-anchor="middle" fill="#27425a" font-size="10" font-weight="700">$</text>
-                    <circle cx="735" cy="140" r="10" fill="url(#dzCoinFill)" stroke="#d6edff" stroke-width="1.4"/>
-                    <text x="735" y="144" text-anchor="middle" fill="#27425a" font-size="11" font-weight="700">$</text>
-                    <circle cx="758" cy="115" r="13" fill="url(#dzCoinFill)" stroke="#d6edff" stroke-width="1.5"/>
-                    <text x="758" y="120" text-anchor="middle" fill="#27425a" font-size="14" font-weight="700">$</text>
-                </g>
-                <circle cx="875" cy="115" r="72" fill="url(#dzHalo)"/>
-                <circle cx="875" cy="115" r="60" fill="url(#dzHaloSoft)" class="dz-pulse"/>
-                <circle cx="875" cy="115" r="56" fill="url(#dzCoinFill)" stroke="#d6edff" stroke-width="2" filter="url(#dzStrongGlow)"/>
-                <text x="875" y="138" text-anchor="middle" fill="#263f58" stroke="#f0f9ff" stroke-width="1" font-size="58" font-weight="600">$</text>
-            </svg>
-        </div>
+const CONFIG = {
+  USDC:   '0x3600000000000000000000000000000000000000', // USDC na Arc (6 casas no ERC-20)
+  ROUTER: '0xEA0129203FBB99ebEea3f78B2d05b924f17FB556', // AchSwapV3Router (verificado)
+  QUOTER: '0x659Da32F3F10566bDB6B55Ad84c182f1D00Ba058', // AchSwapV3QuoterV2 (verificado)
+  FEES: [100, 500, 3000, 10000],
+  MIN_VALUE_USDC: 0.05,
+  MAX_VALUE_USDC: 5,
+  MAX_PER_RUN: 10,
+  SLIPPAGE_BPS: 300n,       // 3%
+  DEADLINE_SEC: 900,        // 15 minutos
+  GAS_UNITS_BATCH: 400000n, // estimativa do lote
+  GAS_UNITS_APPROVE: 60000n,
+  // Adicione os endereços dos tokens que você quer verificar
+  TOKENS: [
+    // { address: '0x...' },
+  ],
+};
 
-        <!-- COLUNA ESQUERDA -->
-        <div class="col-left">
-            <div class="total-wealth-card">
-                <div class="wealth-header-row">
-                    <span class="wealth-title" id="wealthTitle">Total Wealth on Arc</span>
-                    <div class="network-indicator">
-                        <span class="network-name-label">Arc Network</span>
-                        <div class="status-dot" id="statusDot"></div>
-                    </div>
-                </div>
-                <span class="wealth-amount" id="wealthAmount">$0.00</span>
-                <span class="wealth-subtitle" id="wealthSub">Estimated value in USDC</span>
-            </div>
-            <div class="analytics-grid">
-                <div class="analytic-card">
-                    <div class="analytic-top"><div class="analytic-icon icon-blue">❖</div><span class="analytic-number" id="statFound">0</span></div>
-                    <div class="analytic-label" id="labelFound">Tokens Found</div>
-                </div>
-                <div class="analytic-card">
-                    <div class="analytic-top"><div class="analytic-icon icon-green">✓</div><span class="analytic-number" id="statEligible">0</span></div>
-                    <div class="analytic-label" id="labelEligible">Eligible</div>
-                </div>
-                <div class="analytic-card">
-                    <div class="analytic-top"><div class="analytic-icon icon-yellow">!</div><span class="analytic-number" id="statReview">0</span></div>
-                    <div class="analytic-label" id="labelReview">Not Eligible</div>
-                </div>
-            </div>
-            <div class="slippage-notice-box">
-                <div class="notice-icon-circle">i</div>
-                <div class="slippage-notice-text" id="slippageText">
-                    Only small balances <strong>up to $5.00</strong> are eligible for optimized batch conversion (Arc Mainnet)
-                </div>
-            </div>
-            <div class="card" style="margin-bottom: 0;">
-                <div class="list-header">
-                    <span class="list-title" id="tokensHeader">Tokens found</span>
-                    <div class="select-all-container" id="selectAllContainer" style="display:none;" onclick="toggleSelectAll()">
-                        <span class="select-all-label-text" id="selectAllText">Select eligible</span>
-                        <label class="custom-switch-wrapper">
-                            <input type="checkbox" id="selectAllCheckbox">
-                            <span class="custom-switch-slider"></span>
-                        </label>
-                    </div>
-                </div>
-                <div class="token-list" id="tokenList">
-                    <div class="scanner-state">
-                        <div class="wallet-art-container">
-                            <svg width="60" height="46" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="color: var(--text-secondary);">
-                                <path d="M20 12V8H6a2 2 0 0 1-2-2c0-1.1.9-2 2-2h12v4"/>
-                                <path d="M4 6v12a2 2 0 0 0 2 2h14v-4"/>
-                                <path d="M18 12a2 2 0 0 0 0 4h4v-4Z"/>
-                            </svg>
-                        </div>
-                        <p id="scanPrompt" style="font-size: 0.85rem; font-weight: 500;">Connect wallet to scan Arc network...</p>
-                    </div>
-                </div>
-            </div>
-        </div>
+// ===== ABIs =====
+const ERC20_ABI = [
+  'function balanceOf(address) view returns (uint256)',
+  'function allowance(address,address) view returns (uint256)',
+  'function approve(address,uint256) returns (bool)',
+  'function decimals() view returns (uint8)',
+  'function symbol() view returns (string)',
+];
+const QUOTER_ABI = [
+  'function quoteExactInputSingle((address tokenIn,address tokenOut,uint256 amountIn,uint24 fee,uint160 sqrtPriceLimitX96) params) returns (uint256 amountOut,uint160 sqrtPriceX96After,uint32 initializedTicksCrossed,uint256 gasEstimate)',
+];
+const ROUTER_ABI = [
+  'function exactInputSingle((address tokenIn,address tokenOut,uint24 fee,address recipient,uint256 deadline,uint256 amountIn,uint256 amountOutMinimum,uint160 sqrtPriceLimitX96) params) payable returns (uint256 amountOut)',
+  'function multicall(bytes[] data) payable returns (bytes[] results)',
+];
 
-        <!-- COLUNA DIREITA -->
-        <div class="col-right">
-            <div class="card-summary-pro" id="reviewCard">
-                <div class="summary-pro-header">
-                    <div class="summary-pro-title-area">
-                        <div class="summary-pro-icon">
-                            <svg viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
-                        </div>
-                        <span id="summaryHeaderTitle">Summary</span>
-                    </div>
-                    <div class="summary-currency-tag" id="currentCurrencyTag">USDC</div>
-                </div>
-                <div class="summary-pro-grid">
-                    <div class="summary-col">
-                        <span class="summary-label-sm" id="lblSelectedVal">Selected value</span>
-                        <span class="summary-val-main" id="valSelectedAmount">$0.00</span>
-                    </div>
-                    <div class="summary-col right">
-                        <span class="summary-label-sm" id="lblYouReceive">You receive</span>
-                        <span class="summary-val-main green" id="valReceiveAmount">$0.00</span>
-                    </div>
-                </div>
-                <div class="summary-fees-section">
-                    <div class="fees-toggle-row" id="feesToggleRow" onclick="toggleFeeDropdown()">
-                        <span class="fees-title-left" id="lblEstimatedCosts">Estimated costs</span>
-                        <div class="fees-right-side">
-                            <span id="valTotalFees">~$0.02</span>
-                            <span class="fees-arrow" id="feesArrow">▼</span>
-                        </div>
-                    </div>
-                    <div class="fees-dropdown-content" id="feesDropdown">
-                        <div class="fee-sub-row"><span id="lblDustFee">Dust Zero fee</span><span id="valDustFee">$0.00</span></div>
-                        <div class="fee-sub-row"><span id="lblSwapFee">Conversion cost</span><span id="valSwapFee">~$0.01</span></div>
-                        <div class="fee-sub-row"><span id="lblGasFee">Arc network gas</span><span id="valGasFee">~$0.01</span></div>
-                        <div class="fees-disclaimer" id="lblFeeDisclaimer">Arc mainnet gas paid in USDC.</div>
-                    </div>
-                </div>
-            </div>
-            <button id="sweepBtn" class="action-btn" onclick="handleMainAction()" disabled>Review Consolidation</button>
-        </div>
-    </div>
+// ===== ESTADO =====
+let provider, signer, account, quoter, gasPrice = 0n;
+let items = [];
+const $ = id => document.getElementById(id);
+const log = msg => { $('log').textContent += msg + '\n'; };
+const fmt = (x, dec) => Number(ethers.formatUnits(x, dec)).toFixed(4);
 
-    <footer>
-        <div class="footer-content">© 2026 Dust Zero • Arc Mainnet</div>
-    </footer>
+// ===== CONEXÃO =====
+async function connect() {
+  if (!window.ethereum) { alert('Instale uma carteira como MetaMask.'); return; }
+  try {
+    await window.ethereum.request({ method: 'eth_requestAccounts' });
+    try {
+      await window.ethereum.request({ method: 'wallet_switchEthereumChain', params: [{ chainId: ARC.chainIdHex }] });
+    } catch (e) {
+      await window.ethereum.request({
+        method: 'wallet_addEthereumChain',
+        params: [{
+          chainId: ARC.chainIdHex,
+          chainName: ARC.name,
+          rpcUrls: [ARC.rpc],
+          nativeCurrency: { name: 'USDC', symbol: 'USDC', decimals: 18 },
+          blockExplorerUrls: [ARC.explorer],
+        }],
+      });
+    }
+    provider = new ethers.BrowserProvider(window.ethereum);
+    signer = await provider.getSigner();
+    account = await signer.getAddress();
+    quoter = new ethers.Contract(CONFIG.QUOTER, QUOTER_ABI, provider);
+    $('status').textContent = 'Conectado: ' + account.slice(0, 6) + '...' + account.slice(-4);
+    $('connect').disabled = true;
+    await scan();
+  } catch (e) {
+    log('Erro ao conectar: ' + (e.shortMessage || e.message));
+  }
+}
 
-    <script>
-        // ============================================================
-        // ESTADO GLOBAL
-        // ============================================================
-        let isConnected = false;
-        let currentCurrency = 'USDC';
-        let currentLang = 'en';
-        let exchangeRate = 0.92;
-        let reviewStep = false;
-        let userAddress = '';
-        let provider = null;
-        let signer = null;
-        const DUST_LIMIT_USD = 5.00;
+// ===== COTAÇÃO: testa as fee tiers e fica com a melhor =====
+async function quoteBest(tokenIn, amountIn) {
+  let best = null;
+  for (const fee of CONFIG.FEES) {
+    try {
+      const r = await quoter.quoteExactInputSingle.staticCall({
+        tokenIn, tokenOut: CONFIG.USDC, amountIn, fee, sqrtPriceLimitX96: 0,
+      });
+      const out = r[0];
+      if (out > 0n && (!best || out > best.out)) best = { out, fee };
+    } catch (e) { /* sem pool nessa fee */ }
+  }
+  return best;
+}
 
-        // ============================================================
-        // REDE ARC
-        // ============================================================
-        const ARC_CHAIN_ID = 5042;
-        const ARC_CHAIN_ID_HEX = '0x13B2';
-        const ARC_RPC_URL = 'https://rpc.mainnet.arc.io';
+// ===== VARREDURA DOS TOKENS =====
+async function scan() {
+  if (!account) return;
+  $('list').innerHTML = '<p class="muted">Lendo carteira...</p>';
+  items = [];
+  const feeData = await provider.getFeeData();
+  gasPrice = feeData.gasPrice ?? 0n;
 
-        // ============================================================
-        // BLOCKSCOUT API
-        // ============================================================
-        const BLOCKSCOUT_API_KEY = 'proapi_f0AClyzwhZVcMclzYtJ4ppz3sOW5vyICXV6kY19lj3vqZPqNIJS99DfDMlVhvgari_eGl7eL';
-        const BLOCKSCOUT_BASE_URL = 'https://api.blockscout.com';
-        const CACHE_TTL_MS = 5 * 60 * 1000;
+  for (const t of CONFIG.TOKENS) {
+    try {
+      const c = new ethers.Contract(t.address, ERC20_ABI, provider);
+      const [bal, dec, sym] = await Promise.all([c.balanceOf(account), c.decimals(), c.symbol()]);
+      if (bal === 0n) continue;
 
-        // ============================================================
-        // USDC CONTRACT (fallback)
-        // ============================================================
-        const USDC_ERC20_ADDRESS = '0x3600000000000000000000000000000000000000';
-        const ERC20_ABI = [
-            "function balanceOf(address owner) view returns (uint256)",
-            "function decimals() view returns (uint8)",
-            "function symbol() view returns (string)",
-            "function name() view returns (string)"
-        ];
+      const row = { address: t.address, symbol: sym, bal, dec, out: 0n, fee: 0, reason: '', selected: false };
+      const best = await quoteBest(t.address, bal);
+      if (!best) {
+        row.reason = 'Sem pool ou sem liquidez';
+      } else {
+        row.out = best.out;
+        row.fee = best.fee;
+        const v = Number(ethers.formatUnits(best.out, 6));
+        if (v < CONFIG.MIN_VALUE_USDC) row.reason = 'Abaixo de 0,05 USDC';
+        else if (v > CONFIG.MAX_VALUE_USDC) row.reason = 'Acima de 5 USDC';
+      }
+      items.push(row);
+    } catch (e) {
+      log('Erro em ' + t.address + ': ' + (e.shortMessage || e.message));
+    }
+  }
+  render();
+}
 
-        // ============================================================
-        // TOKENS
-        // ============================================================
-        let baseTokens = [];
+// ===== INTERFACE =====
+function render() {
+  const box = $('list');
+  box.innerHTML = '';
+  if (!items.length) {
+    box.innerHTML = '<p class="muted">Nenhum token com saldo nos endereços configurados.</p>';
+    updateReview();
+    return;
+  }
+  const elig = items.filter(i => !i.reason).length;
+  const summary = document.createElement('p');
+  summary.className = 'muted';
+  summary.textContent = 'Elegíveis: ' + elig + ' · Não elegíveis: ' + (items.length - elig);
+  box.append(summary);
 
-        // ============================================================
-        // LEITURA REAL (BLOCKSCOUT)
-        // ============================================================
-        async function fetchRealPortfolio() {
-            if (!userAddress) return;
+  for (const it of items) {
+    const div = document.createElement('div');
+    div.className = 'card';
 
-            const cacheKey = `dz_portfolio_${userAddress.toLowerCase()}`;
-            const cached = localStorage.getItem(cacheKey);
-            if (cached) {
-                try {
-                    const parsed = JSON.parse(cached);
-                    if (Date.now() - parsed.timestamp < CACHE_TTL_MS) {
-                        console.log('📦 Usando cache');
-                        baseTokens = parsed.tokens;
-                        return;
-                    }
-                } catch (e) {}
-            }
+    const logo = document.createElement('div');
+    logo.className = 'logo';
+    logo.textContent = it.symbol.slice(0, 1).toUpperCase();
 
-            try {
-                const url = `${BLOCKSCOUT_BASE_URL}/${ARC_CHAIN_ID}/api/v2/addresses/${userAddress}/token-balances?apikey=${BLOCKSCOUT_API_KEY}`;
-                console.log('🔍 Buscando portfólio no Blockscout...');
-                console.log('URL:', url);
+    const info = document.createElement('div');
+    info.className = 'info';
+    const name = document.createElement('b');
+    name.textContent = it.symbol;
+    const detail = document.createElement('div');
+    detail.className = it.reason ? 'bad' : 'muted';
+    detail.textContent = it.reason
+      ? it.reason
+      : 'Saldo ' + fmt(it.bal, it.dec) + ' · ~' + fmt(it.out, 6) + ' USDC';
+    info.append(name, detail);
 
-                const response = await fetch(url, {
-                    headers: { 'accept': 'application/json' }
-                });
+    div.append(logo, info);
 
-                if (!response.ok) {
-                    const errorBody = await response.text();
-                    console.error('❌ Erro HTTP Blockscout:', response.status);
-                    console.error('Detalhes:', errorBody);
-                    throw new Error(`Blockscout HTTP ${response.status}`);
-                }
+    if (!it.reason) {
+      const cb = document.createElement('input');
+      cb.type = 'checkbox';
+      cb.checked = it.selected;
+      cb.onchange = () => { it.selected = cb.checked; updateReview(); };
+      div.append(cb);
+    }
+    box.append(div);
+  }
+  updateReview();
+}
 
-                const json = await response.json();
-                console.log('📦 Resposta completa:', json);
+function selected() {
+  return items.filter(i => i.selected && !i.reason).slice(0, CONFIG.MAX_PER_RUN);
+}
 
-                const tokens = Array.isArray(json) ? json : (json.items || []);
+function updateReview() {
+  const sel = selected();
+  const total = sel.reduce((a, i) => a + i.out, 0n);
+  const gasUnits = CONFIG.GAS_UNITS_BATCH + BigInt(sel.length) * CONFIG.GAS_UNITS_APPROVE;
+  const gas = (gasPrice * gasUnits) / 1000000000000n; // gas usa 18 casas; USDC ERC-20 usa 6
 
-                baseTokens = tokens
-                    .map((item, index) => {
-                        const token = item.token || item;
-                        const decimals = parseInt(token.decimals || '18');
-                        const rawBalance = item.value || '0';
-                        const balance = parseFloat(rawBalance) / Math.pow(10, decimals);
-                        if (balance <= 0) return null;
+  $('selCount').textContent = sel.length;
+  $('recv').textContent = fmt(total, 6);
+  $('gasEst').textContent = fmt(gas, 6);
+  $('review').style.display = sel.length ? 'block' : 'none';
+  $('go').disabled = !sel.length;
+}
 
-                        const symbol = token.symbol || 'UNKNOWN';
-                        const isStable = ['USDC', 'EURC', 'USDT', 'DAI'].includes(symbol.toUpperCase());
-                        const usdValue = isStable ? balance : 0;
+// ===== EXECUÇÃO: aprovações + um lote (multicall) =====
+async function executeBatch() {
+  const sel = selected();
+  if (!sel.length) return;
+  $('go').disabled = true;
+  try {
+    // 1) Aprovação por token (uma transação cada, só se faltar allowance)
+    for (const t of sel) {
+      const token = new ethers.Contract(t.address, ERC20_ABI, signer);
+      const allowance = await token.allowance(account, CONFIG.ROUTER);
+      if (allowance < t.bal) {
+        log('Aprovando ' + t.symbol + '...');
+        const txA = await token.approve(CONFIG.ROUTER, t.bal);
+        await txA.wait();
+      }
+    }
 
-                        return {
-                            id: index + 1,
-                            symbol: symbol,
-                            name: token.name || 'Unknown Token',
-                            balance: balance.toFixed(6),
-                            usdValue: usdValue,
-                            logo: token.icon_url || null,
-                            status: 'ok',
-                            selected: false
-                        };
-                    })
-                    .filter(t => t !== null)
-                    .sort((a, b) => b.usdValue - a.usdValue);
+    // 2) Monta as trocas e envia tudo num multicall
+    const deadline = Math.floor(Date.now() / 1000) + CONFIG.DEADLINE_SEC;
+    const iface = new ethers.Interface(ROUTER_ABI);
+    const calls = sel.map(t => {
+      const minOut = (t.out * (10000n - CONFIG.SLIPPAGE_BPS)) / 10000n;
+      return iface.encodeFunctionData('exactInputSingle', [{
+        tokenIn: t.address,
+        tokenOut: CONFIG.USDC,
+        fee: t.fee,
+        recipient: account,
+        deadline,
+        amountIn: t.bal,
+        amountOutMinimum: minOut,
+        sqrtPriceLimitX96: 0,
+      }]);
+    });
 
-                console.log(`✅ Blockscout: ${baseTokens.length} tokens encontrados`);
+    const router = new ethers.Contract(CONFIG.ROUTER, ROUTER_ABI, signer);
+    log('Enviando lote com ' + calls.length + ' troca(s)...');
+    const tx = await router.multicall(calls);
+    log('Enviado: ' + tx.hash);
+    await tx.wait();
+    log('Concluído. Se alguma troca falhar, o lote inteiro é revertido.');
+    await scan();
+  } catch (e) {
+    log('Erro: ' + (e.shortMessage || e.message));
+  } finally {
+    $('go').disabled = false;
+  }
+}
 
-                localStorage.setItem(cacheKey, JSON.stringify({
-                    timestamp: Date.now(),
-                    tokens: baseTokens
-                }));
-
-            } catch (error) {
-                console.error('❌ Erro na Blockscout API:', error);
-                await fetchRealUSDCFallback();
-            }
-        }
-
-        // ============================================================
-        // FALLBACK (RPC direto)
-        // ============================================================
-        async function fetchRealUSDCFallback() {
-            if (!provider || !userAddress) return;
-            try {
-                const usdcContract = new ethers.Contract(USDC_ERC20_ADDRESS, ERC20_ABI, provider);
-                const rawBalance = await usdcContract.balanceOf(userAddress);
-                const usdcAmount = parseFloat(ethers.formatUnits(rawBalance, 6));
-                if (usdcAmount > 0) {
-                    baseTokens = [{
-                        id: 1, symbol: 'USDC', name: 'USD Coin',
-                        balance: usdcAmount.toFixed(6), usdValue: usdcAmount,
-                        logo: null, status: 'ok', selected: false
-                    }];
-                } else {
-                    baseTokens = [];
-                }
-                console.log('🔄 Fallback RPC usado');
-            } catch (error) {
-                console.error("Erro no fallback:", error);
-                baseTokens = [];
-            }
-        }
-
-        // ============================================================
-        // TRADUÇÕES
-        // ============================================================
-        const translations = {
-            en: { connect: "Connect", connectedText: "Connected", menuTitle: "Menu",
-                prefSectionTitle: "Preferences", walletSectionTitle: "Wallet",
-                langLabel: "Language", langDesc: "Select interface language",
-                currencyMenuLabel: "Conversion Currency", currencyDesc: "Choose destination asset",
-                themeMenuLabel: "Appearance", themeDescDark: "Dark mode active",
-                themeDescLight: "Light mode active", walletConnectedLabel: "Connected Wallet",
-                disconnectBtnText: "Disconnect Wallet",
-                introTitle: 'Smart Asset <span style="color: var(--accent-cyan);">Consolidation</span>',
-                introDesc: "Connect your wallet to the Arc network to detect and convert small residual balances into stablecoins seamlessly.",
-                wealthTitle: "Total Wealth on Arc", wealthSub: "Estimated value in USDC",
-                summaryHeader: "Summary", lblSelectedVal: "Selected value", lblYouReceive: "You receive",
-                lblEstimatedCosts: "Estimated costs", lblDustFee: "Dust Zero fee",
-                lblSwapFee: "Conversion cost", lblGasFee: "Arc network gas",
-                lblFeeDisclaimer: "Arc mainnet gas paid in USDC.",
-                slippageNotice: "Only small balances <strong>up to $5.00</strong> are eligible",
-                tokensHeader: "Tokens found", selectAll: "Select eligible", selectedCount: "selected",
-                labelFound: "Tokens Found", labelEligible: "Eligible", labelReview: "Not Eligible",
-                scanPrompt: "Connect wallet to scan Arc network...",
-                btnReview: "Review Consolidation", btnConfirm: "Confirm Transaction",
-                btnProcessing: "Processing batch on Arc...", btnSuccess: "Successfully Converted!",
-                noLiqText: "No Liquidity", highSlipText: "High Slippage",
-                highValueText: "Above $5 limit", sameCurrencyText: "Already in destination" },
-            pt: { connect: "Conectar", connectedText: "Conectada", menuTitle: "Menu",
-                prefSectionTitle: "Preferências", walletSectionTitle: "Carteira",
-                langLabel: "Idioma / Language", langDesc: "Selecione o idioma da interface",
-                currencyMenuLabel: "Moeda de conversão", currencyDesc: "Escolha o ativo de destino",
-                themeMenuLabel: "Aparência", themeDescDark: "Modo escuro ativo",
-                themeDescLight: "Modo claro ativo", walletConnectedLabel: "Carteira conectada",
-                disconnectBtnText: "Desconectar carteira",
-                introTitle: 'Consolidação Inteligente de <span style="color: var(--accent-cyan);">Ativos</span>',
-                introDesc: "Conecte sua carteira na rede Arc para detetar e converter pequenos saldos residuais em stablecoins.",
-                wealthTitle: "Patrimônio Total na Arc", wealthSub: "Valor estimado em USDC",
-                summaryHeader: "Resumo", lblSelectedVal: "Valor selecionado", lblYouReceive: "Você recebe",
-                lblEstimatedCosts: "Custos estimados", lblDustFee: "Taxa do Dust Zero",
-                lblSwapFee: "Custo de conversão", lblGasFee: "Gas da rede Arc",
-                lblFeeDisclaimer: "Gas da Arc pago em USDC.",
-                slippageNotice: "Apenas pequenos saldos <strong>até $5.00</strong> são elegíveis",
-                tokensHeader: "Tokens encontrados", selectAll: "Selecionar elegíveis", selectedCount: "selecionados",
-                labelFound: "Tokens Encontrados", labelEligible: "Elegíveis", labelReview: "Não elegíveis",
-                scanPrompt: "Conecte a carteira para escanear a rede Arc...",
-                btnReview: "Review Consolidation", btnConfirm: "Confirmar Transação",
-                btnProcessing: "A processar lote na Arc...", btnSuccess: "Convertido com Sucesso!",
-                noLiqText: "Sem Liquidez", highSlipText: "Alta Perda",
-                highValueText: "Acima do limite de $5", sameCurrencyText: "Já é a moeda destino" },
-            es: { connect: "Conectar", connectedText: "Conectada", menuTitle: "Menú",
-                prefSectionTitle: "Preferencias", walletSectionTitle: "Cartera",
-                langLabel: "Idioma", langDesc: "Seleccione el idioma",
-                currencyMenuLabel: "Moneda de conversión", currencyDesc: "Elija el activo de destino",
-                themeMenuLabel: "Apariência", themeDescDark: "Modo oscuro activo",
-                themeDescLight: "Modo claro activo", walletConnectedLabel: "Cartera conectada",
-                disconnectBtnText: "Desconectar cartera",
-                introTitle: 'Consolidación Inteligente de <span style="color: var(--accent-cyan);">Ativos</span>',
-                introDesc: "Conecta tu cartera a la red Arc para detectar y convertir pequeños saldos residuales.",
-                wealthTitle: "Patrimonio Total en Arc", wealthSub: "Valor estimado en USDC",
-                summaryHeader: "Resumen", lblSelectedVal: "Valor seleccionado", lblYouReceive: "Usted recibe",
-                lblEstimatedCosts: "Costes estimados", lblDustFee: "Comisión Dust Zero",
-                lblSwapFee: "Coste de conversión", lblGasFee: "Gas de la red Arc",
-                lblFeeDisclaimer: "Gas de Arc pagado en USDC.",
-                slippageNotice: "Solo saldos pequeños <strong>hasta $5.00</strong> son elegibles",
-                tokensHeader: "Tokens encontrados", selectAll: "Selecionar elegíveis", selectedCount: "seleccionados",
-                labelFound: "Tokens Encontrados", labelEligible: "Elegibles", labelReview: "No elegibles",
-                scanPrompt: "Conecta la cartera para escanear la red Arc...",
-                btnReview: "Review Consolidation", btnConfirm: "Confirmar Transacción",
-                btnProcessing: "Procesando lote en Arc...", btnSuccess: "¡Convertido con Éxito!",
-                noLiqText: "Sin Liquidez", highSlipText: "Alta Pérdida",
-                highValueText: "Por encima del límite de $5", sameCurrencyText: "Ya es la moneda destino" }
-        };
-
-        // ============================================================
-        // UI
-        // ============================================================
-        function toggleSidebar() {
-            const sidebar = document.getElementById('sidebar');
-            const overlay = document.getElementById('sidebarOverlay');
-            sidebar.classList.toggle('active');
-            overlay.classList.toggle('active');
-            document.getElementById('customSelect').classList.remove('open');
-        }
-        function openWalletModal() {
-            document.getElementById('walletOverlay').classList.add('active');
-            document.getElementById('walletBottomSheet').classList.add('active');
-        }
-        function closeWalletModal() {
-            document.getElementById('walletOverlay').classList.remove('active');
-            document.getElementById('walletBottomSheet').classList.remove('active');
-        }
-        function toggleDropdown(e) {
-            e.stopPropagation();
-            document.getElementById('customSelect').classList.toggle('open');
-        }
-        function toggleFeeDropdown() {
-            const row = document.getElementById('feesToggleRow');
-            const content = document.getElementById('feesDropdown');
-            row.classList.toggle('open');
-            content.classList.toggle('active');
-        }
-        window.addEventListener('click', () => {
-            const dropdown = document.getElementById('customSelect');
-            if (dropdown) dropdown.classList.remove('open');
-        });
-        function toggleTheme() {
-            const isLight = document.getElementById('themeToggle').checked;
-            const body = document.body;
-            const t = translations[currentLang];
-            const themeSvg = document.getElementById('themeSvg');
-            if (isLight) {
-                body.setAttribute('data-theme', 'light');
-                document.getElementById('themeDesc').textContent = t.themeDescLight;
-                themeSvg.innerHTML = `<circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>`;
-            } else {
-                body.setAttribute('data-theme', 'dark');
-                document.getElementById('themeDesc').textContent = t.themeDescDark;
-                themeSvg.innerHTML = `<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>`;
-            }
-        }
-        function setLanguage(lang, label) {
-            currentLang = lang;
-            document.getElementById('selectedLangText').textContent = label;
-            const options = document.querySelectorAll('.custom-option');
-            options.forEach(opt => {
-                opt.classList.remove('selected');
-                if(opt.textContent === label) opt.classList.add('selected');
-            });
-            document.getElementById('customSelect').classList.remove('open');
-            const t = translations[currentLang];
-            const isLight = document.getElementById('themeToggle').checked;
-            document.getElementById('menuTitle').textContent = t.menuTitle;
-            document.getElementById('prefSectionTitle').textContent = t.prefSectionTitle;
-            document.getElementById('walletSectionTitle').textContent = t.walletSectionTitle;
-            document.getElementById('langLabel').textContent = t.langLabel;
-            document.getElementById('langDesc').textContent = t.langDesc;
-            document.getElementById('currencyMenuLabel').textContent = t.currencyMenuLabel;
-            document.getElementById('currencyDesc').textContent = t.currencyDesc;
-            document.getElementById('themeMenuLabel').textContent = t.themeMenuLabel;
-            document.getElementById('themeDesc').textContent = isLight ? t.themeDescLight : t.themeDescDark;
-            document.getElementById('walletConnectedLabel').textContent = t.walletConnectedLabel;
-            document.getElementById('disconnectBtnText').textContent = t.disconnectBtnText;
-            document.getElementById('introTitle').innerHTML = t.introTitle;
-            document.getElementById('introDesc').textContent = t.introDesc;
-            document.getElementById('wealthTitle').textContent = t.wealthTitle;
-            document.getElementById('wealthSub').textContent = t.wealthSub;
-            document.getElementById('summaryHeaderTitle').textContent = t.summaryHeader;
-            document.getElementById('lblSelectedVal').textContent = t.lblSelectedVal;
-            document.getElementById('lblYouReceive').textContent = t.lblYouReceive;
-            document.getElementById('lblEstimatedCosts').textContent = t.lblEstimatedCosts;
-            document.getElementById('lblDustFee').textContent = t.lblDustFee;
-            document.getElementById('lblSwapFee').textContent = t.lblSwapFee;
-            document.getElementById('lblGasFee').textContent = t.lblGasFee;
-            document.getElementById('lblFeeDisclaimer').textContent = t.lblFeeDisclaimer;
-            document.getElementById('slippageText').innerHTML = t.slippageNotice;
-            document.getElementById('tokensHeader').textContent = t.tokensHeader;
-            document.getElementById('labelFound').textContent = t.labelFound;
-            document.getElementById('labelEligible').textContent = t.labelEligible;
-            document.getElementById('labelReview').textContent = t.labelReview;
-            if (!isConnected) {
-                document.getElementById('connectBtn').textContent = t.connect;
-                document.getElementById('scanPrompt').textContent = t.scanPrompt;
-                document.getElementById('sweepBtn').textContent = t.btnReview;
-            } else {
-                document.getElementById('connectBtn').innerHTML = `<span class="connect-dot"></span> ${userAddress.substring(0, 6)}...${userAddress.substring(userAddress.length - 4)}`;
-                renderTokens();
-                document.getElementById('sweepBtn').textContent = reviewStep ? t.btnConfirm : t.btnReview;
-            }
-            updateSelectButtonState();
-            updateTotal();
-        }
-        function setCurrency(currency) {
-            currentCurrency = currency;
-            document.getElementById('segUsdc').classList.toggle('active', currency === 'USDC');
-            document.getElementById('segEurc').classList.toggle('active', currency === 'EURC');
-            document.getElementById('currentCurrencyTag').textContent = currency;
-            baseTokens.forEach(token => {
-                if (token.status === 'same_currency' || token.status === 'high_value') {
-                    token.status = 'ok';
-                }
-            });
-            updateTotal();
-            if (isConnected) renderTokens();
-        }
-
-        // ============================================================
-        // CONEXÃO DE CARTEIRA (PARTE CRÍTICA)
-        // ============================================================
-        async function connectRealWallet(walletType) {
-            closeWalletModal();
-            const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-
-            // 1) Verifica se existe carteira injetada
-            if (!window.ethereum) {
-                if (isMobile) {
-                    alert("📱 Você está no navegador mobile.\n\nPara conectar sua carteira, abra este dapp DENTRO do navegador da sua carteira:\n\n• MetaMask → aba 'Browser'\n• Trust Wallet → aba 'DApps'\n• Rabby → aba 'Browser'");
-                } else {
-                    alert("Nenhuma carteira Web3 detectada! Instale MetaMask ou Rabby no navegador.");
-                }
-                return;
-            }
-
-            try {
-                // 2) Cria provider ethers
-                provider = new ethers.BrowserProvider(window.ethereum);
-
-                // 3) Solicita contas
-                const accounts = await provider.send("eth_requestAccounts", []);
-                if (!accounts || accounts.length === 0) {
-                    alert("Nenhuma conta autorizada.");
-                    return;
-                }
-                userAddress = accounts[0];
-                console.log('✅ Conectado:', userAddress);
-
-                // 4) Verifica rede
-                const network = await provider.getNetwork();
-                const chainId = Number(network.chainId);
-                console.log('Chain ID atual:', chainId);
-
-                // 5) Se não for Arc, tenta trocar
-                if (chainId !== ARC_CHAIN_ID) {
-                    try {
-                        await window.ethereum.request({
-                            method: 'wallet_switchEthereumChain',
-                            params: [{ chainId: ARC_CHAIN_ID_HEX }],
-                        });
-                        console.log('✅ Rede trocada para Arc');
-                    } catch (switchError) {
-                        console.warn('Troca de rede falhou:', switchError.message);
-                        if (switchError.code === 4902) {
-                            try {
-                                await window.ethereum.request({
-                                    method: 'wallet_addEthereumChain',
-                                    params: [{
-                                        chainId: ARC_CHAIN_ID_HEX,
-                                        chainName: 'Arc Mainnet',
-                                        rpcUrls: [ARC_RPC_URL],
-                                        nativeCurrency: { name: 'USDC', symbol: 'USDC', decimals: 6 },
-                                        blockExplorerUrls: ['https://explorer.arc.io']
-                                    }],
-                                });
-                                console.log('✅ Rede Arc adicionada');
-                            } catch (addError) {
-                                console.warn('Erro ao adicionar rede:', addError.message);
-                            }
-                        }
-                    }
-                }
-
-                // 6) Signer + estado conectado
-                signer = await provider.getSigner();
-                await setConnectionState(true);
-                console.log('🎉 Conexão completa!');
-
-            } catch (err) {
-                // Trata o erro 4001 (usuário recusou) sem quebrar o app
-                if (err && err.code === 4001) {
-                    console.warn('⚠️ Usuário recusou a conexão.');
-                    alert("Você cancelou a conexão na carteira. Tente novamente e clique em APROVAR.");
-                } else {
-                    console.error("❌ Erro ao conectar:", err);
-                    alert("Erro ao conectar: " + (err.message || err));
-                }
-            }
-        }
-
-        function handleMenuDisconnect() {
-            if (userAddress) {
-                localStorage.removeItem(`dz_portfolio_${userAddress.toLowerCase()}`);
-            }
-            setConnectionState(false);
-            toggleSidebar();
-        }
-
-        async function setConnectionState(connect) {
-            isConnected = connect;
-            const btn = document.getElementById('connectBtn');
-            const walletSection = document.getElementById('walletSection');
-            const reviewCard = document.getElementById('reviewCard');
-            const statusDot = document.getElementById('statusDot');
-            const t = translations[currentLang];
-
-            if (isConnected) {
-                const shortAddr = userAddress ? `${userAddress.substring(0, 6)}...${userAddress.substring(userAddress.length - 4)}` : '0x...';
-                btn.innerHTML = `<span class="connect-dot"></span> ${shortAddr}`;
-                btn.classList.add('connected');
-                document.getElementById('walletAddressText').textContent = shortAddr;
-                walletSection.style.display = 'block';
-                document.getElementById('selectAllContainer').style.display = 'flex';
-                statusDot.classList.add('active');
-                reviewStep = false;
-                reviewCard.classList.remove('active');
-
-                // Busca saldos reais
-                await fetchRealPortfolio();
-
-                renderTokens();
-                updateSelectButtonState();
-                updateTotal();
-                document.getElementById('sweepBtn').disabled = false;
-                document.getElementById('sweepBtn').textContent = t.btnReview;
-            } else {
-                userAddress = '';
-                btn.textContent = t.connect;
-                btn.classList.remove('connected');
-                walletSection.style.display = 'none';
-                document.getElementById('selectAllContainer').style.display = 'none';
-                statusDot.classList.remove('active');
-                reviewStep = false;
-                reviewCard.classList.remove('active');
-                document.getElementById('statFound').textContent = '0';
-                document.getElementById('statEligible').textContent = '0';
-                document.getElementById('statReview').textContent = '0';
-                document.getElementById('wealthAmount').textContent = currentCurrency === 'EURC' ? '€0.00' : '$0.00';
-                document.getElementById('tokenList').innerHTML = `
-                    <div class="scanner-state">
-                        <div class="wallet-art-container">
-                            <svg width="60" height="46" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="color: var(--text-secondary);">
-                                <path d="M20 12V8H6a2 2 0 0 1-2-2c0-1.1.9-2 2-2h12v4"/>
-                                <path d="M4 6v12a2 2 0 0 0 2 2h14v-4"/>
-                                <path d="M18 12a2 2 0 0 0 0 4h4v-4Z"/>
-                            </svg>
-                        </div>
-                        <p id="scanPrompt" style="font-size: 0.85rem; font-weight: 500;">${t.scanPrompt}</p>
-                    </div>
-                `;
-                document.getElementById('valSelectedAmount').textContent = `$0.00`;
-                document.getElementById('valReceiveAmount').textContent = `$0.00`;
-                document.getElementById('sweepBtn').disabled = true;
-                document.getElementById('sweepBtn').textContent = t.btnReview;
-            }
-        }
-
-        // ============================================================
-        // RENDER DE TOKENS
-        // ============================================================
-        function renderTokens() {
-            const listContainer = document.getElementById('tokenList');
-            listContainer.innerHTML = '';
-            const t = translations[currentLang];
-            let foundCount = baseTokens.length;
-            let eligibleCount = 0;
-            let reviewCount = 0;
-
-            if (baseTokens.length === 0) {
-                listContainer.innerHTML = `
-                    <div class="scanner-state">
-                        <div class="wallet-art-container">
-                            <svg width="60" height="46" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="color: var(--text-secondary);">
-                                <path d="M20 12V8H6a2 2 0 0 1-2-2c0-1.1.9-2 2-2h12v4"/>
-                                <path d="M4 6v12a2 2 0 0 0 2 2h14v-4"/>
-                                <path d="M18 12a2 2 0 0 0 0 4h4v-4Z"/>
-                            </svg>
-                        </div>
-                        <p style="font-size: 0.85rem; font-weight: 500;">Nenhum saldo encontrado na Arc</p>
-                    </div>
-                `;
-                document.getElementById('statFound').textContent = '0';
-                document.getElementById('statEligible').textContent = '0';
-                document.getElementById('statReview').textContent = '0';
-                return;
-            }
-
-            baseTokens.forEach(token => {
-                if (token.usdValue > DUST_LIMIT_USD && token.status === 'ok') {
-                    token.status = 'high_value';
-                    token.selected = false;
-                }
-                if (token.symbol === currentCurrency && token.status === 'ok') {
-                    token.status = 'same_currency';
-                    token.selected = false;
-                }
-                if (token.status === 'ok') eligibleCount++;
-                else reviewCount++;
-
-                let val = token.usdValue;
-                let symbolPrefix = '$';
-                if (currentCurrency === 'EURC') {
-                    val = val * exchangeRate;
-                    symbolPrefix = '€';
-                }
-
-                let subText = `${token.balance} tokens`;
-                let isDisabled = '';
-                let warningBadgeHTML = '';
-
-                if (token.status === 'no_liquidity') {
-                    subText = t.noLiqText; isDisabled = 'disabled';
-                    warningBadgeHTML = `<div class="warning-badge-overlay">!</div>`;
-                } else if (token.status === 'high_slippage') {
-                    subText = t.highSlipText; isDisabled = 'disabled';
-                    warningBadgeHTML = `<div class="warning-badge-overlay">!</div>`;
-                } else if (token.status === 'high_value') {
-                    subText = t.highValueText; isDisabled = 'disabled';
-                    warningBadgeHTML = `<div class="warning-badge-overlay">!</div>`;
-                } else if (token.status === 'same_currency') {
-                    subText = t.sameCurrencyText; isDisabled = 'disabled';
-                    warningBadgeHTML = `<div class="warning-badge-overlay">i</div>`;
-                }
-
-                const iconContent = token.logo
-                    ? `<img src="${token.logo}" alt="${token.symbol}" onerror="this.style.display='none';this.parentNode.textContent='${token.symbol.substring(0,2)}';">`
-                    : token.symbol.substring(0,2);
-
-                const item = document.createElement('div');
-                item.className = 'token-item';
-                item.innerHTML = `
-                    <div class="token-info">
-                        <div class="token-icon-wrapper">
-                            <div class="token-icon">${iconContent}</div>
-                            ${warningBadgeHTML}
-                        </div>
-                        <div>
-                            <div class="token-name">${token.symbol}</div>
-                            <div class="token-balance">${subText}</div>
-                        </div>
-                    </div>
-                    <div class="token-right">
-                        <div class="token-usd">~${symbolPrefix}${val.toFixed(2)}</div>
-                        <input type="checkbox" ${token.selected && !isDisabled ? 'checked' : ''} ${isDisabled} onchange="toggleToken(${token.id})">
-                    </div>
-                `;
-                listContainer.appendChild(item);
-            });
-
-            document.getElementById('statFound').textContent = isConnected ? foundCount : 0;
-            document.getElementById('statEligible').textContent = isConnected ? eligibleCount : 0;
-            document.getElementById('statReview').textContent = isConnected ? reviewCount : 0;
-        }
-
-        function toggleToken(id) {
-            const token = baseTokens.find(t => t.id === id);
-            if (token && token.status === 'ok') {
-                token.selected = !token.selected;
-                updateSelectButtonState();
-                updateTotal();
-            }
-        }
-
-        function toggleSelectAll() {
-            const validTokens = baseTokens.filter(t => t.status === 'ok');
-            const checkbox = document.getElementById('selectAllCheckbox');
-            checkbox.checked = !checkbox.checked;
-            validTokens.forEach(t => t.selected = checkbox.checked);
-            renderTokens();
-            updateSelectButtonState();
-            updateTotal();
-        }
-
-        function updateSelectButtonState() {
-            const t = translations[currentLang];
-            const validTokens = baseTokens.filter(t => t.status === 'ok');
-            const selectedValid = validTokens.filter(t => t.selected).length;
-            const checkbox = document.getElementById('selectAllCheckbox');
-            const selectTextSpan = document.getElementById('selectAllText');
-            if (selectedValid === validTokens.length && validTokens.length > 0) {
-                checkbox.checked = true;
-                selectTextSpan.textContent = t.selectAll;
-            } else if (selectedValid === 0) {
-                checkbox.checked = false;
-                selectTextSpan.textContent = t.selectAll;
-            } else {
-                checkbox.checked = false;
-                selectTextSpan.textContent = `${selectedValid} ${t.selectedCount}`;
-            }
-        }
-
-        function updateTotal() {
-            let total = 0;
-            let totalPortfolio = 0;
-            baseTokens.forEach(token => {
-                if (token.status !== 'no_liquidity') {
-                    totalPortfolio += token.usdValue;
-                    if (token.selected) total += token.usdValue;
-                }
-            });
-            let prefix = '$';
-            let totalFee = 0.02;
-            let swapFee = 0.01;
-            let gasFee = 0.01;
-            if (currentCurrency === 'EURC') {
-                total = total * exchangeRate;
-                totalPortfolio = totalPortfolio * exchangeRate;
-                totalFee = totalFee * exchangeRate;
-                swapFee = swapFee * exchangeRate;
-                gasFee = gasFee * exchangeRate;
-                prefix = '€';
-            }
-            let finalReceived = Math.max(0, total - totalFee);
-            document.getElementById('wealthAmount').textContent = isConnected ? `${prefix}${totalPortfolio.toFixed(2)}` : `${prefix}0.00`;
-            document.getElementById('valSelectedAmount').textContent = `${prefix}${total.toFixed(2)}`;
-            document.getElementById('valReceiveAmount').textContent = `${prefix}${finalReceived.toFixed(2)}`;
-            document.getElementById('valTotalFees').textContent = `~${prefix}${totalFee.toFixed(2)}`;
-            document.getElementById('valSwapFee').textContent = `~${prefix}${swapFee.toFixed(2)}`;
-            document.getElementById('valGasFee').textContent = `~${prefix}${gasFee.toFixed(2)}`;
-        }
-
-        function handleMainAction() {
-            const btn = document.getElementById('sweepBtn');
-            const reviewCard = document.getElementById('reviewCard');
-            const t = translations[currentLang];
-            if (!reviewStep) {
-                reviewStep = true;
-                reviewCard.classList.add('active');
-                btn.textContent = t.btnConfirm;
-                reviewCard.scrollIntoView({ behavior: 'smooth' });
-            } else {
-                btn.disabled = true;
-                btn.innerHTML = `<span class="spinner-icon"></span> ${t.btnProcessing}`;
-                setTimeout(() => {
-                    btn.innerHTML = `<span class="success-check">✓</span> ${t.btnSuccess}`;
-                    baseTokens.forEach(tk => {
-                        if (tk.selected && tk.status === 'ok') {
-                            tk.balance = '0.00'; tk.usdValue = 0.00; tk.selected = false;
-                        }
-                    });
-                    renderTokens();
-                    updateSelectButtonState();
-                    updateTotal();
-                    setTimeout(() => {
-                        reviewCard.classList.remove('active');
-                        reviewStep = false;
-                        btn.textContent = t.btnReview;
-                        btn.disabled = false;
-                    }, 3000);
-                }, 2000);
-            }
-        }
-
-        // ============================================================
-        // LISTENERS
-        // ============================================================
-        if (window.ethereum) {
-            window.ethereum.on('accountsChanged', async (accounts) => {
-                if (accounts.length === 0) {
-                    await setConnectionState(false);
-                } else {
-                    userAddress = accounts[0];
-                    await setConnectionState(true);
-                }
-            });
-            window.ethereum.on('chainChanged', (_chainId) => {
-                window.location.reload();
-            });
-        }
-    </script>
+$('connect').onclick = connect;
+$('go').onclick = executeBatch;
+</script>
 </body>
-                    </html>
+</html>
