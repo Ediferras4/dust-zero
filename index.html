@@ -10,12 +10,14 @@
   button:disabled { opacity: .4; cursor: not-allowed; }
   .card { background: #16161d; border-radius: 12px; padding: 12px 14px; margin: 8px 0; display: flex; align-items: center; gap: 12px; }
   .info { flex: 1; min-width: 0; }
-  .muted { color: #999; font-size: 13px; }
-  .bad { color: #f0a500; font-size: 13px; }
+  .line { font-size: 13px; color: #aaa; margin-top: 2px; word-break: break-all; }
+  .ok { color: #7bd88f; }
+  .bad { color: #f0a500; }
   .logo { width: 36px; height: 36px; border-radius: 50%; background: #2a2a36; display: flex; align-items: center; justify-content: center; font-weight: bold; color: #4f7cff; flex-shrink: 0; overflow: hidden; }
   .logo img { width: 100%; height: 100%; object-fit: cover; }
+  #summary { font-size: 14px; color: #bbb; }
   #review { background: #16161d; border-radius: 12px; padding: 14px; margin-top: 16px; display: none; }
-  #log { font-size: 13px; color: #aaa; white-space: pre-wrap; word-break: break-all; }
+  #log { font-size: 12px; color: #aaa; white-space: pre-wrap; word-break: break-all; margin-top: 16px; }
 </style>
 </head>
 <body>
@@ -23,7 +25,8 @@
 <p class="muted">Converte resíduos de tokens (de 0,05 a 5 USDC) em USDC na Arc mainnet. Até 10 tokens por vez.</p>
 
 <button id="connect">Conectar carteira</button>
-<p id="status" class="muted"></p>
+<p id="status"></p>
+<p id="summary"></p>
 <div id="list"></div>
 
 <div id="review">
@@ -54,7 +57,7 @@ const CONFIG = {
   MAX_VALUE_USDC: 5,
   MAX_PER_RUN: 10,
   MAX_TOKENS_SCANNED: 40,
-  SLIPPAGE_BPS: 300n,       // 3%
+  SLIPPAGE_BPS: 300n,
   DEADLINE_SEC: 900,
   GAS_UNITS_BATCH: 400000n,
   GAS_UNITS_APPROVE: 60000n,
@@ -78,7 +81,7 @@ let provider, signer, account, quoter, gasPrice = 0n;
 let items = [];
 const $ = id => document.getElementById(id);
 const log = msg => { $('log').textContent += msg + '\n'; };
-const fmt = (x, dec) => Number(ethers.formatUnits(x, dec)).toFixed(4);
+const usdc = x => Number(ethers.formatUnits(x, 6)).toFixed(4);
 
 // ===== CONEXÃO =====
 async function connect() {
@@ -129,8 +132,8 @@ async function fetchTokens() {
     }));
 }
 
-// ===== COTAÇÃO: testa as fee tiers e fica com a melhor =====
-async function quoteBest(tokenIn, amountIn) {
+// ===== COTAÇÃO: testa cada fee tier e registra o resultado =====
+async function quoteBest(tokenIn, amountIn, symbol) {
   let best = null;
   for (const fee of CONFIG.FEES) {
     try {
@@ -138,8 +141,11 @@ async function quoteBest(tokenIn, amountIn) {
         tokenIn, tokenOut: CONFIG.USDC, amountIn, fee, sqrtPriceLimitX96: 0,
       });
       const out = r[0];
+      log(`${symbol} fee ${fee}: ${usdc(out)} USDC`);
       if (out > 0n && (!best || out > best.out)) best = { out, fee };
-    } catch (e) { /* sem pool nessa fee */ }
+    } catch (e) {
+      log(`${symbol} fee ${fee}: sem pool (${(e.shortMessage || e.message || '').slice(0, 60)})`);
+    }
   }
   return best;
 }
@@ -158,16 +164,17 @@ async function scan() {
       .slice(0, CONFIG.MAX_TOKENS_SCANNED);
 
     for (const t of tokens) {
+      log(`${t.symbol}: saldo bruto ${t.raw} (${t.decimals} casas)`);
       const row = { ...t, out: 0n, fee: 0, reason: '', selected: false };
-      const best = await quoteBest(t.address, t.raw);
+      const best = await quoteBest(t.address, t.raw, t.symbol);
       if (!best) {
         row.reason = 'Sem pool ou sem liquidez contra USDC';
       } else {
         row.out = best.out;
         row.fee = best.fee;
         const v = Number(ethers.formatUnits(best.out, 6));
-        if (v < CONFIG.MIN_VALUE_USDC) row.reason = 'Abaixo de 0,05 USDC';
-        else if (v > CONFIG.MAX_VALUE_USDC) row.reason = 'Acima de 5 USDC';
+        if (v < CONFIG.MIN_VALUE_USDC) row.reason = 'Valor estimado abaixo de 0,05 USDC';
+        else if (v > CONFIG.MAX_VALUE_USDC) row.reason = 'Valor estimado acima de 5 USDC';
       }
       items.push(row);
     }
@@ -183,14 +190,12 @@ function render() {
   box.innerHTML = '';
   if (!items.length) {
     box.innerHTML = '<p class="muted">Nenhum token encontrado nesta carteira.</p>';
+    $('summary').textContent = '';
     updateReview();
     return;
   }
   const elig = items.filter(i => !i.reason).length;
-  const summary = document.createElement('p');
-  summary.className = 'muted';
-  summary.textContent = 'Tokens encontrados: ' + items.length + ' · Elegíveis: ' + elig + ' · Não elegíveis: ' + (items.length - elig);
-  box.append(summary);
+  $('summary').textContent = 'Tokens: ' + items.length + ' · Elegíveis: ' + elig + ' · Não elegíveis: ' + (items.length - elig);
 
   for (const it of items) {
     const div = document.createElement('div');
@@ -209,14 +214,36 @@ function render() {
 
     const info = document.createElement('div');
     info.className = 'info';
+
     const name = document.createElement('b');
     name.textContent = it.symbol + (it.name ? ' · ' + it.name : '');
-    const detail = document.createElement('div');
-    detail.className = it.reason ? 'bad' : 'muted';
-    detail.textContent = it.reason
-      ? it.reason
-      : 'Saldo ' + fmt(it.raw, it.decimals) + ' · ~' + fmt(it.out, 6) + ' USDC';
-    info.append(name, detail);
+
+    const saldo = document.createElement('div');
+    saldo.className = 'line';
+    saldo.textContent = 'Saldo: ' + ethers.formatUnits(it.raw, it.decimals) + ' ' + it.symbol;
+
+    const valor = document.createElement('div');
+    valor.className = 'line';
+    if (it.out > 0n) {
+      valor.textContent = 'Valor estimado: ' + usdc(it.out) + ' USDC · fee ' + (it.fee / 10000) + '%';
+    } else {
+      valor.textContent = 'Valor estimado: sem cotação';
+    }
+
+    info.append(name, saldo, valor);
+
+    if (it.reason) {
+      const motivo = document.createElement('div');
+      motivo.className = 'line bad';
+      motivo.textContent = 'Não elegível: ' + it.reason;
+      info.append(motivo);
+    } else {
+      const ok = document.createElement('div');
+      ok.className = 'line ok';
+      ok.textContent = 'Elegível';
+      info.append(ok);
+    }
+
     div.append(logo, info);
 
     if (!it.reason) {
@@ -241,8 +268,8 @@ function updateReview() {
   const gasUnits = CONFIG.GAS_UNITS_BATCH + BigInt(sel.length) * CONFIG.GAS_UNITS_APPROVE;
   const gas = (gasPrice * gasUnits) / 1000000000000n; // gas usa 18 casas; USDC ERC-20 usa 6
   $('selCount').textContent = sel.length;
-  $('recv').textContent = fmt(total, 6);
-  $('gasEst').textContent = fmt(gas, 6);
+  $('recv').textContent = usdc(total);
+  $('gasEst').textContent = usdc(gas);
   $('review').style.display = sel.length ? 'block' : 'none';
   $('go').disabled = !sel.length;
 }
