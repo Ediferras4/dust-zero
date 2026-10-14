@@ -485,6 +485,7 @@
         </div>
     </header>
 
+    <!-- BOTTOM SHEET: SELECÇÃO DE CARTEIRA -->
     <div class="wallet-modal-overlay" id="walletOverlay" onclick="closeWalletModal()"></div>
     <div class="wallet-bottom-sheet" id="walletBottomSheet">
         <div class="sheet-header">
@@ -493,28 +494,49 @@
         </div>
         <div class="wallet-options-grid">
             <div class="wallet-option-item" onclick="connectRealWallet('browser')">
-                <div class="wallet-opt-left"><div class="wallet-opt-icon">🌐</div>
-                    <div><div class="wallet-opt-name">Browser Wallet / Injected</div>
-                        <div class="wallet-opt-desc">MetaMask, Rabby, Phantom nativo</div></div></div>
-                <span style="color: var(--text-secondary);">❯</span></div>
+                <div class="wallet-opt-left">
+                    <div class="wallet-opt-icon">🌐</div>
+                    <div>
+                        <div class="wallet-opt-name">Browser Wallet / Injected</div>
+                        <div class="wallet-opt-desc">MetaMask, Rabby, Phantom nativo</div>
+                    </div>
+                </div>
+                <span style="color: var(--text-secondary);">❯</span>
+            </div>
             <div class="wallet-option-item" onclick="connectRealWallet('metamask')">
-                <div class="wallet-opt-left"><div class="wallet-opt-icon" style="color: #f6851b;">🦊</div>
-                    <div><div class="wallet-opt-name">MetaMask</div>
-                        <div class="wallet-opt-desc">Conexão direta à extensão ou app</div></div></div>
-                <span style="color: var(--text-secondary);">❯</span></div>
+                <div class="wallet-opt-left">
+                    <div class="wallet-opt-icon" style="color: #f6851b;">🦊</div>
+                    <div>
+                        <div class="wallet-opt-name">MetaMask</div>
+                        <div class="wallet-opt-desc">Conexão direta à extensão ou app</div>
+                    </div>
+                </div>
+                <span style="color: var(--text-secondary);">❯</span>
+            </div>
             <div class="wallet-option-item" onclick="connectRealWallet('rabby')">
-                <div class="wallet-opt-left"><div class="wallet-opt-icon" style="color: #836ef9;">🐰</div>
-                    <div><div class="wallet-opt-name">Rabby Wallet</div>
-                        <div class="wallet-opt-desc">Proteção avançada DeFi</div></div></div>
-                <span style="color: var(--text-secondary);">❯</span></div>
+                <div class="wallet-opt-left">
+                    <div class="wallet-opt-icon" style="color: #836ef9;">🐰</div>
+                    <div>
+                        <div class="wallet-opt-name">Rabby Wallet</div>
+                        <div class="wallet-opt-desc">Proteção avançada DeFi</div>
+                    </div>
+                </div>
+                <span style="color: var(--text-secondary);">❯</span>
+            </div>
             <div class="wallet-option-item" onclick="connectRealWallet('walletconnect')">
-                <div class="wallet-opt-left"><div class="wallet-opt-icon" style="color: #3b99fc;">wc</div>
-                    <div><div class="wallet-opt-name">WalletConnect</div>
-                        <div class="wallet-opt-desc">Conectar via QR Code / Mobile</div></div></div>
-                <span style="color: var(--text-secondary);">❯</span></div>
+                <div class="wallet-opt-left">
+                    <div class="wallet-opt-icon" style="color: #3b99fc;">wc</div>
+                    <div>
+                        <div class="wallet-opt-name">WalletConnect</div>
+                        <div class="wallet-opt-desc">Conectar via QR Code / Mobile</div>
+                    </div>
+                </div>
+                <span style="color: var(--text-secondary);">❯</span>
+            </div>
         </div>
     </div>
 
+    <!-- SIDEBAR -->
     <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
     <div class="sidebar" id="sidebar">
         <div class="sidebar-header">
@@ -607,8 +629,10 @@
         </div>
     </div>
 
+    <!-- CONTAINER PRINCIPAL -->
     <div class="container">
 
+        <!-- BANNER SVG -->
         <div class="dz-banner-card">
             <div class="dz-banner-text">
                 <h1 id="introTitle" class="dz-banner-title">Smart Asset <span style="color: var(--accent-cyan);">Consolidation</span></h1>
@@ -620,29 +644,18 @@
             <svg class="dz-banner-art" viewBox="0 0 1100 220" role="img" aria-label="Dust Zero">
                 <defs>
                     <linearGradient id="dzCoinFill" x1="0" y1="0" x2="1" y2="1">
-                        <stop offset="0" stop-color="#f2fbff"/>
-                        <stop offset=".48" stop-color="#9dbdd8"/>
-                        <stop offset="1" stop-color="#3a5672"/>
+                        <stop offset="0" stop-color="#f2fbff"/><stop offset=".48" stop-color="#9dbdd8"/><stop offset="1" stop-color="#3a5672"/>
                     </linearGradient>
                     <linearGradient id="dzArcFill" x1="0" y1="0" x2="1" y2="1">
-                        <stop offset="0" stop-color="#e6f9ff"/>
-                        <stop offset="1" stop-color="#74bce8"/>
+                        <stop offset="0" stop-color="#e6f9ff"/><stop offset="1" stop-color="#74bce8"/>
                     </linearGradient>
-                    <radialGradient id="dzHalo">
-                        <stop offset="0" stop-color="#8adfff" stop-opacity=".32"/>
-                        <stop offset="1" stop-color="#8adfff" stop-opacity="0"/>
-                    </radialGradient>
-                    <radialGradient id="dzHaloSoft">
-                        <stop offset="0" stop-color="#8adfff" stop-opacity=".18"/>
-                        <stop offset="1" stop-color="#8adfff" stop-opacity="0"/>
-                    </radialGradient>
+                    <radialGradient id="dzHalo"><stop offset="0" stop-color="#8adfff" stop-opacity=".32"/><stop offset="1" stop-color="#8adfff" stop-opacity="0"/></radialGradient>
+                    <radialGradient id="dzHaloSoft"><stop offset="0" stop-color="#8adfff" stop-opacity=".18"/><stop offset="1" stop-color="#8adfff" stop-opacity="0"/></radialGradient>
                     <filter id="dzSoftGlow" x="-80%" y="-80%" width="260%" height="260%">
-                        <feGaussianBlur stdDeviation="5" result="blur"/>
-                        <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+                        <feGaussianBlur stdDeviation="5" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
                     </filter>
                     <filter id="dzStrongGlow" x="-100%" y="-100%" width="300%" height="300%">
-                        <feGaussianBlur stdDeviation="8" result="blur"/>
-                        <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+                        <feGaussianBlur stdDeviation="8" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
                     </filter>
                 </defs>
                 <ellipse cx="200" cy="110" rx="180" ry="85" fill="url(#dzHaloSoft)"/>
@@ -700,6 +713,7 @@
             </svg>
         </div>
 
+        <!-- COLUNA ESQUERDA -->
         <div class="col-left">
             <div class="total-wealth-card">
                 <div class="wealth-header-row">
@@ -714,24 +728,15 @@
             </div>
             <div class="analytics-grid">
                 <div class="analytic-card">
-                    <div class="analytic-top">
-                        <div class="analytic-icon icon-blue">❖</div>
-                        <span class="analytic-number" id="statFound">0</span>
-                    </div>
+                    <div class="analytic-top"><div class="analytic-icon icon-blue">❖</div><span class="analytic-number" id="statFound">0</span></div>
                     <div class="analytic-label" id="labelFound">Tokens Found</div>
                 </div>
                 <div class="analytic-card">
-                    <div class="analytic-top">
-                        <div class="analytic-icon icon-green">✓</div>
-                        <span class="analytic-number" id="statEligible">0</span>
-                    </div>
+                    <div class="analytic-top"><div class="analytic-icon icon-green">✓</div><span class="analytic-number" id="statEligible">0</span></div>
                     <div class="analytic-label" id="labelEligible">Eligible</div>
                 </div>
                 <div class="analytic-card">
-                    <div class="analytic-top">
-                        <div class="analytic-icon icon-yellow">!</div>
-                        <span class="analytic-number" id="statReview">0</span>
-                    </div>
+                    <div class="analytic-top"><div class="analytic-icon icon-yellow">!</div><span class="analytic-number" id="statReview">0</span></div>
                     <div class="analytic-label" id="labelReview">Not Eligible</div>
                 </div>
             </div>
@@ -767,6 +772,7 @@
             </div>
         </div>
 
+        <!-- COLUNA DIREITA -->
         <div class="col-right">
             <div class="card-summary-pro" id="reviewCard">
                 <div class="summary-pro-header">
@@ -797,21 +803,10 @@
                         </div>
                     </div>
                     <div class="fees-dropdown-content" id="feesDropdown">
-                        <div class="fee-sub-row">
-                            <span id="lblDustFee">Dust Zero fee</span>
-                            <span id="valDustFee">$0.00</span>
-                        </div>
-                        <div class="fee-sub-row">
-                            <span id="lblSwapFee">Conversion cost</span>
-                            <span id="valSwapFee">~$0.01</span>
-                        </div>
-                        <div class="fee-sub-row">
-                            <span id="lblGasFee">Arc network gas</span>
-                            <span id="valGasFee">~$0.01</span>
-                        </div>
-                        <div class="fees-disclaimer" id="lblFeeDisclaimer">
-                            Arc mainnet gas paid in USDC. Actual breakdown depends on market rate.
-                        </div>
+                        <div class="fee-sub-row"><span id="lblDustFee">Dust Zero fee</span><span id="valDustFee">$0.00</span></div>
+                        <div class="fee-sub-row"><span id="lblSwapFee">Conversion cost</span><span id="valSwapFee">~$0.01</span></div>
+                        <div class="fee-sub-row"><span id="lblGasFee">Arc network gas</span><span id="valGasFee">~$0.01</span></div>
+                        <div class="fees-disclaimer" id="lblFeeDisclaimer">Arc mainnet gas paid in USDC.</div>
                     </div>
                 </div>
             </div>
@@ -824,7 +819,9 @@
     </footer>
 
     <script>
-        // ==================== ESTADO GLOBAL ====================
+        // ============================================================
+        // ESTADO GLOBAL
+        // ============================================================
         let isConnected = false;
         let currentCurrency = 'USDC';
         let currentLang = 'en';
@@ -835,17 +832,23 @@
         let signer = null;
         const DUST_LIMIT_USD = 5.00;
 
-        // ==================== REDE ARC ====================
+        // ============================================================
+        // REDE ARC
+        // ============================================================
         const ARC_CHAIN_ID = 5042;
         const ARC_CHAIN_ID_HEX = '0x13B2';
         const ARC_RPC_URL = 'https://rpc.mainnet.arc.io';
 
-        // ==================== BLOCKSCOUT API ====================
+        // ============================================================
+        // BLOCKSCOUT API
+        // ============================================================
         const BLOCKSCOUT_API_KEY = 'proapi_f0AClyzwhZVcMclzYtJ4ppz3sOW5vyICXV6kY19lj3vqZPqNIJS99DfDMlVhvgari_eGl7eL';
         const BLOCKSCOUT_BASE_URL = 'https://api.blockscout.com';
         const CACHE_TTL_MS = 5 * 60 * 1000;
 
-        // ==================== USDC CONTRACT (fallback) ====================
+        // ============================================================
+        // USDC CONTRACT (fallback)
+        // ============================================================
         const USDC_ERC20_ADDRESS = '0x3600000000000000000000000000000000000000';
         const ERC20_ABI = [
             "function balanceOf(address owner) view returns (uint256)",
@@ -854,10 +857,14 @@
             "function name() view returns (string)"
         ];
 
-        // ==================== TOKENS ====================
+        // ============================================================
+        // TOKENS
+        // ============================================================
         let baseTokens = [];
 
-        // ==================== LEITURA REAL (BLOCKSCOUT) ====================
+        // ============================================================
+        // LEITURA REAL (BLOCKSCOUT)
+        // ============================================================
         async function fetchRealPortfolio() {
             if (!userAddress) return;
 
@@ -893,7 +900,6 @@
                 const json = await response.json();
                 console.log('📦 Resposta completa:', json);
 
-                // A resposta do Blockscout é um array de tokens
                 const tokens = Array.isArray(json) ? json : (json.items || []);
 
                 baseTokens = tokens
@@ -902,10 +908,8 @@
                         const decimals = parseInt(token.decimals || '18');
                         const rawBalance = item.value || '0';
                         const balance = parseFloat(rawBalance) / Math.pow(10, decimals);
-
                         if (balance <= 0) return null;
 
-                        // Preço: Blockscout não retorna preço, assume 1 USD para stablecoins
                         const symbol = token.symbol || 'UNKNOWN';
                         const isStable = ['USDC', 'EURC', 'USDT', 'DAI'].includes(symbol.toUpperCase());
                         const usdValue = isStable ? balance : 0;
@@ -937,7 +941,9 @@
             }
         }
 
-        // ==================== FALLBACK (RPC) ====================
+        // ============================================================
+        // FALLBACK (RPC direto)
+        // ============================================================
         async function fetchRealUSDCFallback() {
             if (!provider || !userAddress) return;
             try {
@@ -960,7 +966,9 @@
             }
         }
 
-        // ==================== TRADUÇÕES ====================
+        // ============================================================
+        // TRADUÇÕES
+        // ============================================================
         const translations = {
             en: { connect: "Connect", connectedText: "Connected", menuTitle: "Menu",
                 prefSectionTitle: "Preferences", walletSectionTitle: "Wallet",
@@ -1030,7 +1038,9 @@
                 highValueText: "Por encima del límite de $5", sameCurrencyText: "Ya es la moneda destino" }
         };
 
-        // ==================== UI ====================
+        // ============================================================
+        // UI
+        // ============================================================
         function toggleSidebar() {
             const sidebar = document.getElementById('sidebar');
             const overlay = document.getElementById('sidebarOverlay');
@@ -1140,10 +1150,14 @@
             if (isConnected) renderTokens();
         }
 
-        // ==================== CONEXÃO ====================
+        // ============================================================
+        // CONEXÃO DE CARTEIRA (PARTE CRÍTICA)
+        // ============================================================
         async function connectRealWallet(walletType) {
             closeWalletModal();
             const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+
+            // 1) Verifica se existe carteira injetada
             if (!window.ethereum) {
                 if (isMobile) {
                     alert("📱 Você está no navegador mobile.\n\nPara conectar sua carteira, abra este dapp DENTRO do navegador da sua carteira:\n\n• MetaMask → aba 'Browser'\n• Trust Wallet → aba 'DApps'\n• Rabby → aba 'Browser'");
@@ -1152,21 +1166,33 @@
                 }
                 return;
             }
+
             try {
+                // 2) Cria provider ethers
                 provider = new ethers.BrowserProvider(window.ethereum);
+
+                // 3) Solicita contas
                 const accounts = await provider.send("eth_requestAccounts", []);
-                if (!accounts || accounts.length === 0) { alert("Nenhuma conta autorizada."); return; }
+                if (!accounts || accounts.length === 0) {
+                    alert("Nenhuma conta autorizada.");
+                    return;
+                }
                 userAddress = accounts[0];
-                console.log('Conectado:', userAddress);
+                console.log('✅ Conectado:', userAddress);
+
+                // 4) Verifica rede
                 const network = await provider.getNetwork();
                 const chainId = Number(network.chainId);
-                console.log('Chain ID:', chainId);
+                console.log('Chain ID atual:', chainId);
+
+                // 5) Se não for Arc, tenta trocar
                 if (chainId !== ARC_CHAIN_ID) {
                     try {
                         await window.ethereum.request({
                             method: 'wallet_switchEthereumChain',
                             params: [{ chainId: ARC_CHAIN_ID_HEX }],
                         });
+                        console.log('✅ Rede trocada para Arc');
                     } catch (switchError) {
                         console.warn('Troca de rede falhou:', switchError.message);
                         if (switchError.code === 4902) {
@@ -1181,22 +1207,31 @@
                                         blockExplorerUrls: ['https://explorer.arc.io']
                                     }],
                                 });
+                                console.log('✅ Rede Arc adicionada');
                             } catch (addError) {
                                 console.warn('Erro ao adicionar rede:', addError.message);
                             }
                         }
                     }
                 }
+
+                // 6) Signer + estado conectado
                 signer = await provider.getSigner();
                 await setConnectionState(true);
-                console.log('✅ Conectado com sucesso!');
+                console.log('🎉 Conexão completa!');
+
             } catch (err) {
-                console.error("❌ Erro ao conectar:", err);
-                if (err.code !== 4001) {
+                // Trata o erro 4001 (usuário recusou) sem quebrar o app
+                if (err && err.code === 4001) {
+                    console.warn('⚠️ Usuário recusou a conexão.');
+                    alert("Você cancelou a conexão na carteira. Tente novamente e clique em APROVAR.");
+                } else {
+                    console.error("❌ Erro ao conectar:", err);
                     alert("Erro ao conectar: " + (err.message || err));
                 }
             }
         }
+
         function handleMenuDisconnect() {
             if (userAddress) {
                 localStorage.removeItem(`dz_portfolio_${userAddress.toLowerCase()}`);
@@ -1204,6 +1239,7 @@
             setConnectionState(false);
             toggleSidebar();
         }
+
         async function setConnectionState(connect) {
             isConnected = connect;
             const btn = document.getElementById('connectBtn');
@@ -1211,6 +1247,7 @@
             const reviewCard = document.getElementById('reviewCard');
             const statusDot = document.getElementById('statusDot');
             const t = translations[currentLang];
+
             if (isConnected) {
                 const shortAddr = userAddress ? `${userAddress.substring(0, 6)}...${userAddress.substring(userAddress.length - 4)}` : '0x...';
                 btn.innerHTML = `<span class="connect-dot"></span> ${shortAddr}`;
@@ -1221,7 +1258,10 @@
                 statusDot.classList.add('active');
                 reviewStep = false;
                 reviewCard.classList.remove('active');
+
+                // Busca saldos reais
                 await fetchRealPortfolio();
+
                 renderTokens();
                 updateSelectButtonState();
                 updateTotal();
@@ -1259,7 +1299,9 @@
             }
         }
 
-        // ==================== RENDER ====================
+        // ============================================================
+        // RENDER DE TOKENS
+        // ============================================================
         function renderTokens() {
             const listContainer = document.getElementById('tokenList');
             listContainer.innerHTML = '';
@@ -1267,6 +1309,7 @@
             let foundCount = baseTokens.length;
             let eligibleCount = 0;
             let reviewCount = 0;
+
             if (baseTokens.length === 0) {
                 listContainer.innerHTML = `
                     <div class="scanner-state">
@@ -1285,6 +1328,7 @@
                 document.getElementById('statReview').textContent = '0';
                 return;
             }
+
             baseTokens.forEach(token => {
                 if (token.usdValue > DUST_LIMIT_USD && token.status === 'ok') {
                     token.status = 'high_value';
@@ -1296,15 +1340,18 @@
                 }
                 if (token.status === 'ok') eligibleCount++;
                 else reviewCount++;
+
                 let val = token.usdValue;
                 let symbolPrefix = '$';
                 if (currentCurrency === 'EURC') {
                     val = val * exchangeRate;
                     symbolPrefix = '€';
                 }
+
                 let subText = `${token.balance} tokens`;
                 let isDisabled = '';
                 let warningBadgeHTML = '';
+
                 if (token.status === 'no_liquidity') {
                     subText = t.noLiqText; isDisabled = 'disabled';
                     warningBadgeHTML = `<div class="warning-badge-overlay">!</div>`;
@@ -1318,9 +1365,11 @@
                     subText = t.sameCurrencyText; isDisabled = 'disabled';
                     warningBadgeHTML = `<div class="warning-badge-overlay">i</div>`;
                 }
+
                 const iconContent = token.logo
                     ? `<img src="${token.logo}" alt="${token.symbol}" onerror="this.style.display='none';this.parentNode.textContent='${token.symbol.substring(0,2)}';">`
                     : token.symbol.substring(0,2);
+
                 const item = document.createElement('div');
                 item.className = 'token-item';
                 item.innerHTML = `
@@ -1341,10 +1390,12 @@
                 `;
                 listContainer.appendChild(item);
             });
+
             document.getElementById('statFound').textContent = isConnected ? foundCount : 0;
             document.getElementById('statEligible').textContent = isConnected ? eligibleCount : 0;
             document.getElementById('statReview').textContent = isConnected ? reviewCount : 0;
         }
+
         function toggleToken(id) {
             const token = baseTokens.find(t => t.id === id);
             if (token && token.status === 'ok') {
@@ -1353,6 +1404,7 @@
                 updateTotal();
             }
         }
+
         function toggleSelectAll() {
             const validTokens = baseTokens.filter(t => t.status === 'ok');
             const checkbox = document.getElementById('selectAllCheckbox');
@@ -1362,6 +1414,7 @@
             updateSelectButtonState();
             updateTotal();
         }
+
         function updateSelectButtonState() {
             const t = translations[currentLang];
             const validTokens = baseTokens.filter(t => t.status === 'ok');
@@ -1379,6 +1432,7 @@
                 selectTextSpan.textContent = `${selectedValid} ${t.selectedCount}`;
             }
         }
+
         function updateTotal() {
             let total = 0;
             let totalPortfolio = 0;
@@ -1408,6 +1462,7 @@
             document.getElementById('valSwapFee').textContent = `~${prefix}${swapFee.toFixed(2)}`;
             document.getElementById('valGasFee').textContent = `~${prefix}${gasFee.toFixed(2)}`;
         }
+
         function handleMainAction() {
             const btn = document.getElementById('sweepBtn');
             const reviewCard = document.getElementById('reviewCard');
@@ -1439,7 +1494,10 @@
                 }, 2000);
             }
         }
-        // ==================== LISTENERS ====================
+
+        // ============================================================
+        // LISTENERS
+        // ============================================================
         if (window.ethereum) {
             window.ethereum.on('accountsChanged', async (accounts) => {
                 if (accounts.length === 0) {
@@ -1455,4 +1513,4 @@
         }
     </script>
 </body>
-                             </html>
+                        </html>
