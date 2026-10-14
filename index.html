@@ -9,10 +9,11 @@
   button { padding: 10px 16px; border-radius: 8px; border: 0; background: #4f7cff; color: #fff; cursor: pointer; font-size: 15px; }
   button:disabled { opacity: .4; cursor: not-allowed; }
   .card { background: #16161d; border-radius: 12px; padding: 12px 14px; margin: 8px 0; display: flex; align-items: center; gap: 12px; }
-  .info { flex: 1; }
+  .info { flex: 1; min-width: 0; }
   .muted { color: #999; font-size: 13px; }
   .bad { color: #f0a500; font-size: 13px; }
-  .logo { width: 36px; height: 36px; border-radius: 50%; background: #2a2a36; display: flex; align-items: center; justify-content: center; font-weight: bold; color: #4f7cff; flex-shrink: 0; }
+  .logo { width: 36px; height: 36px; border-radius: 50%; background: #2a2a36; display: flex; align-items: center; justify-content: center; font-weight: bold; color: #4f7cff; flex-shrink: 0; overflow: hidden; }
+  .logo img { width: 100%; height: 100%; object-fit: cover; }
   #review { background: #16161d; border-radius: 12px; padding: 14px; margin-top: 16px; display: none; }
   #log { font-size: 13px; color: #aaa; white-space: pre-wrap; word-break: break-all; }
 </style>
@@ -36,7 +37,7 @@
 
 <script src="https://cdn.jsdelivr.net/npm/ethers@6.13.4/dist/ethers.umd.min.js"></script>
 <script>
-// ===== CONFIGURAÇÃO (endereços confirmados no explorer.arc.io) =====
+// ===== CONFIGURAÇÃO =====
 const ARC = {
   chainIdHex: '0x13b2', // 5042
   name: 'Arc',
@@ -45,30 +46,24 @@ const ARC = {
 };
 
 const CONFIG = {
-  USDC:   '0x3600000000000000000000000000000000000000', // USDC na Arc (6 casas no ERC-20)
+  USDC:   '0x3600000000000000000000000000000000000000',
   ROUTER: '0xEA0129203FBB99ebEea3f78B2d05b924f17FB556', // AchSwapV3Router (verificado)
   QUOTER: '0x659Da32F3F10566bDB6B55Ad84c182f1D00Ba058', // AchSwapV3QuoterV2 (verificado)
   FEES: [100, 500, 3000, 10000],
   MIN_VALUE_USDC: 0.05,
   MAX_VALUE_USDC: 5,
   MAX_PER_RUN: 10,
+  MAX_TOKENS_SCANNED: 40,
   SLIPPAGE_BPS: 300n,       // 3%
-  DEADLINE_SEC: 900,        // 15 minutos
-  GAS_UNITS_BATCH: 400000n, // estimativa do lote
+  DEADLINE_SEC: 900,
+  GAS_UNITS_BATCH: 400000n,
   GAS_UNITS_APPROVE: 60000n,
-  // Adicione os endereços dos tokens que você quer verificar
-  TOKENS: [
-    // { address: '0x...' },
-  ],
 };
 
 // ===== ABIs =====
 const ERC20_ABI = [
-  'function balanceOf(address) view returns (uint256)',
   'function allowance(address,address) view returns (uint256)',
   'function approve(address,uint256) returns (bool)',
-  'function decimals() view returns (uint8)',
-  'function symbol() view returns (string)',
 ];
 const QUOTER_ABI = [
   'function quoteExactInputSingle((address tokenIn,address tokenOut,uint256 amountIn,uint24 fee,uint160 sqrtPriceLimitX96) params) returns (uint256 amountOut,uint160 sqrtPriceX96After,uint32 initializedTicksCrossed,uint256 gasEstimate)',
@@ -116,6 +111,24 @@ async function connect() {
   }
 }
 
+// ===== LEITURA DA CARTEIRA VIA API DO EXPLORER =====
+async function fetchTokens() {
+  const url = `${ARC.explorer}/api/v2/addresses/${account}/token-balances`;
+  const r = await fetch(url);
+  if (!r.ok) throw new Error('API do explorer respondeu ' + r.status);
+  const data = await r.json();
+  return data
+    .filter(x => x.token && x.value !== '0')
+    .map(x => ({
+      address: x.token.address_hash || x.token.address,
+      symbol: x.token.symbol || '???',
+      name: x.token.name || '',
+      decimals: Number(x.token.decimals || 18),
+      logo: x.token.icon_url || null,
+      raw: BigInt(x.value),
+    }));
+}
+
 // ===== COTAÇÃO: testa as fee tiers e fica com a melhor =====
 async function quoteBest(tokenIn, amountIn) {
   let best = null;
@@ -131,24 +144,24 @@ async function quoteBest(tokenIn, amountIn) {
   return best;
 }
 
-// ===== VARREDURA DOS TOKENS =====
+// ===== VARREDURA =====
 async function scan() {
   if (!account) return;
   $('list').innerHTML = '<p class="muted">Lendo carteira...</p>';
   items = [];
-  const feeData = await provider.getFeeData();
-  gasPrice = feeData.gasPrice ?? 0n;
+  try {
+    const feeData = await provider.getFeeData();
+    gasPrice = feeData.gasPrice ?? 0n;
 
-  for (const t of CONFIG.TOKENS) {
-    try {
-      const c = new ethers.Contract(t.address, ERC20_ABI, provider);
-      const [bal, dec, sym] = await Promise.all([c.balanceOf(account), c.decimals(), c.symbol()]);
-      if (bal === 0n) continue;
+    const tokens = (await fetchTokens())
+      .filter(t => t.address.toLowerCase() !== CONFIG.USDC.toLowerCase())
+      .slice(0, CONFIG.MAX_TOKENS_SCANNED);
 
-      const row = { address: t.address, symbol: sym, bal, dec, out: 0n, fee: 0, reason: '', selected: false };
-      const best = await quoteBest(t.address, bal);
+    for (const t of tokens) {
+      const row = { ...t, out: 0n, fee: 0, reason: '', selected: false };
+      const best = await quoteBest(t.address, t.raw);
       if (!best) {
-        row.reason = 'Sem pool ou sem liquidez';
+        row.reason = 'Sem pool ou sem liquidez contra USDC';
       } else {
         row.out = best.out;
         row.fee = best.fee;
@@ -157,9 +170,9 @@ async function scan() {
         else if (v > CONFIG.MAX_VALUE_USDC) row.reason = 'Acima de 5 USDC';
       }
       items.push(row);
-    } catch (e) {
-      log('Erro em ' + t.address + ': ' + (e.shortMessage || e.message));
     }
+  } catch (e) {
+    log('Erro ao ler carteira: ' + (e.shortMessage || e.message));
   }
   render();
 }
@@ -169,14 +182,14 @@ function render() {
   const box = $('list');
   box.innerHTML = '';
   if (!items.length) {
-    box.innerHTML = '<p class="muted">Nenhum token com saldo nos endereços configurados.</p>';
+    box.innerHTML = '<p class="muted">Nenhum token encontrado nesta carteira.</p>';
     updateReview();
     return;
   }
   const elig = items.filter(i => !i.reason).length;
   const summary = document.createElement('p');
   summary.className = 'muted';
-  summary.textContent = 'Elegíveis: ' + elig + ' · Não elegíveis: ' + (items.length - elig);
+  summary.textContent = 'Tokens encontrados: ' + items.length + ' · Elegíveis: ' + elig + ' · Não elegíveis: ' + (items.length - elig);
   box.append(summary);
 
   for (const it of items) {
@@ -185,19 +198,25 @@ function render() {
 
     const logo = document.createElement('div');
     logo.className = 'logo';
-    logo.textContent = it.symbol.slice(0, 1).toUpperCase();
+    if (it.logo) {
+      const img = document.createElement('img');
+      img.src = it.logo;
+      img.onerror = () => { logo.textContent = it.symbol.slice(0, 1).toUpperCase(); };
+      logo.append(img);
+    } else {
+      logo.textContent = it.symbol.slice(0, 1).toUpperCase();
+    }
 
     const info = document.createElement('div');
     info.className = 'info';
     const name = document.createElement('b');
-    name.textContent = it.symbol;
+    name.textContent = it.symbol + (it.name ? ' · ' + it.name : '');
     const detail = document.createElement('div');
     detail.className = it.reason ? 'bad' : 'muted';
     detail.textContent = it.reason
       ? it.reason
-      : 'Saldo ' + fmt(it.bal, it.dec) + ' · ~' + fmt(it.out, 6) + ' USDC';
+      : 'Saldo ' + fmt(it.raw, it.decimals) + ' · ~' + fmt(it.out, 6) + ' USDC';
     info.append(name, detail);
-
     div.append(logo, info);
 
     if (!it.reason) {
@@ -221,7 +240,6 @@ function updateReview() {
   const total = sel.reduce((a, i) => a + i.out, 0n);
   const gasUnits = CONFIG.GAS_UNITS_BATCH + BigInt(sel.length) * CONFIG.GAS_UNITS_APPROVE;
   const gas = (gasPrice * gasUnits) / 1000000000000n; // gas usa 18 casas; USDC ERC-20 usa 6
-
   $('selCount').textContent = sel.length;
   $('recv').textContent = fmt(total, 6);
   $('gasEst').textContent = fmt(gas, 6);
@@ -235,18 +253,16 @@ async function executeBatch() {
   if (!sel.length) return;
   $('go').disabled = true;
   try {
-    // 1) Aprovação por token (uma transação cada, só se faltar allowance)
     for (const t of sel) {
       const token = new ethers.Contract(t.address, ERC20_ABI, signer);
       const allowance = await token.allowance(account, CONFIG.ROUTER);
-      if (allowance < t.bal) {
+      if (allowance < t.raw) {
         log('Aprovando ' + t.symbol + '...');
-        const txA = await token.approve(CONFIG.ROUTER, t.bal);
+        const txA = await token.approve(CONFIG.ROUTER, t.raw);
         await txA.wait();
       }
     }
 
-    // 2) Monta as trocas e envia tudo num multicall
     const deadline = Math.floor(Date.now() / 1000) + CONFIG.DEADLINE_SEC;
     const iface = new ethers.Interface(ROUTER_ABI);
     const calls = sel.map(t => {
@@ -257,7 +273,7 @@ async function executeBatch() {
         fee: t.fee,
         recipient: account,
         deadline,
-        amountIn: t.bal,
+        amountIn: t.raw,
         amountOutMinimum: minOut,
         sqrtPriceLimitX96: 0,
       }]);
